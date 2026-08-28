@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>梗王贪吃蛇 · V4.5</title>
+    <title>梗王贪吃蛇 · V4.7</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
         body {
@@ -245,7 +245,6 @@
             border: 1px solid rgba(255,255,255,0.04);
         }
         #cheatBtn:hover { background: rgba(255,255,255,0.06); }
-        /* ---- 信息面板默认隐藏，只在游戏进行时显示 ---- */
         .info-panel {
             display: none;
             justify-content: space-around;
@@ -362,12 +361,11 @@
 <div class="game-box">
     <div class="title-row">
         <div class="game-title"><span class="snake">🐍</span> 梗王贪吃蛇</div>
-        <span class="version-badge">V4.5</span>
+        <span class="version-badge">V4.7</span>
     </div>
     <div class="canvas-wrapper">
         <canvas id="gameCanvas" width="600" height="600"></canvas>
 
-        <!-- 主菜单 -->
         <div id="mainMenu" class="overlay active">
             <div class="overlay-title">🐍 梗王贪吃蛇</div>
             <div class="overlay-sub">PICK SOUND</div>
@@ -382,7 +380,6 @@
             <div style="color:#3a3a5a;font-size:0.65rem;letter-spacing:8px;font-family:'Impact',monospace;border-top:1px solid #1a1a30;padding-top:12px;width:60%;text-align:center;">◆ SELECT ◆</div>
         </div>
 
-        <!-- 教程 -->
         <div id="tutorialMenu" class="overlay">
             <div class="overlay-title">📖 教程</div>
             <div class="overlay-sub">HOW TO PLAY</div>
@@ -412,7 +409,6 @@
             <div class="menu-btn back" id="tutorialBack">← 返回</div>
         </div>
 
-        <!-- 图鉴 -->
         <div id="galleryMenu" class="overlay">
             <div class="overlay-title">▣ 图鉴</div>
             <div class="overlay-sub">FOOD GALLERY</div>
@@ -420,7 +416,6 @@
             <div class="menu-btn back" id="galleryBack">← 返回</div>
         </div>
 
-        <!-- 设置 -->
         <div id="settingsMenu" class="overlay">
             <div class="overlay-title">⚙ 设置</div>
             <div class="overlay-sub">SETTINGS</div>
@@ -443,7 +438,7 @@
                 </div>
                 <div class="settings-row">
                     <span>📅 更新日期</span>
-                    <span class="value">2026年8月27日</span>
+                    <span class="value">2026年8月28日</span>
                 </div>
                 <div style="color:#4a4a6a;font-size:0.8rem;margin-top:12px;text-align:center;border-top:1px solid #1a1a30;padding-top:12px;">
                     速度调整后，新游戏将立即生效
@@ -452,7 +447,6 @@
             <div class="menu-btn back" id="settingsBack">← 返回</div>
         </div>
 
-        <!-- 开发者 -->
         <div id="devMenu" class="overlay">
             <div class="overlay-title">👨‍💻 开发者名单</div>
             <div class="overlay-sub">CREDITS</div>
@@ -468,7 +462,7 @@
                 <div class="dev-entry"><span class="role">📦 版本管理</span><span class="name">冯高汶</span></div>
                 <div class="section" style="margin-top:12px;">📌 关于游戏</div>
                 <div style="color:#666688;font-size:0.85rem;padding:4px 0;">
-                    梗王贪吃蛇 V4.5<br>
+                    梗王贪吃蛇 V4.7<br>
                     由 冯高汶 设计并制作<br>
                     灵感来自回春丹、草东没有派对、核电站综合体
                 </div>
@@ -484,7 +478,6 @@
 
         <div id="cheatBtn">🖥️</div>
     </div>
-    <!-- 信息面板，默认隐藏 -->
     <div class="info-panel" id="infoPanel">
         <span>❤️ <span id="lives">3</span></span>
         <span>💥 <span id="score">0</span></span>
@@ -514,8 +507,23 @@
 </div>
 <script>
 (function() {
-    const GAME_VERSION = '4.5';
-    const UPDATE_DATE = '2026年8月27日';
+    // ===== 版本检测模块 =====
+    const CURRENT_VERSION = '4.7';
+    const STORAGE_KEY = 'gagSnakeVersion';
+
+    const lastVersion = localStorage.getItem(STORAGE_KEY);
+    if (lastVersion && lastVersion !== CURRENT_VERSION) {
+        if (confirm('🎮 检测到新版本！是否立即刷新页面？')) {
+            localStorage.setItem(STORAGE_KEY, CURRENT_VERSION);
+            location.reload();
+        }
+    } else if (!lastVersion) {
+        localStorage.setItem(STORAGE_KEY, CURRENT_VERSION);
+    }
+    // ===== 版本检测结束 =====
+
+    const GAME_VERSION = '4.7';
+    const UPDATE_DATE = '2026年8月28日';
     console.log('梗王贪吃蛇 V' + GAME_VERSION + ' 更新日期: ' + UPDATE_DATE);
 
     // DOM
@@ -534,7 +542,6 @@
     const resumeBtn = document.getElementById('resumeBtn');
     const infoPanel = document.getElementById('infoPanel');
 
-    // 覆盖层
     const mainMenu = document.getElementById('mainMenu');
     const tutorialMenu = document.getElementById('tutorialMenu');
     const galleryMenu = document.getElementById('galleryMenu');
@@ -621,7 +628,6 @@
         { text: '⚡ 雷霆控制棒！蛇身带电！', effect: 'lightningMode' },
     ];
 
-    // ---------- 核心函数 ----------
     function resetGame() {
         clearInterval(moveInterval);
         if (autoInterval) { clearInterval(autoInterval); autoInterval = null; }
@@ -662,12 +668,11 @@
         backToMenuBtn.style.display = 'none';
         resumeBtn.style.display = 'none';
         hideAllOverlays();
-        // 显示信息面板
         infoPanel.style.display = 'flex';
     }
 
     function loadHighScore() {
-        const saved = localStorage.getItem('gagSnakeHighScoreV4_5');
+        const saved = localStorage.getItem('gagSnakeHighScoreV4_7');
         highScore = saved ? parseInt(saved,10) : 0;
         highScoreSpan.textContent = highScore;
         settingsHighScore.textContent = highScore;
@@ -675,7 +680,7 @@
     function saveHighScore() {
         if (score > highScore) {
             highScore = score;
-            localStorage.setItem('gagSnakeHighScoreV4_5', highScore);
+            localStorage.setItem('gagSnakeHighScoreV4_7', highScore);
             highScoreSpan.textContent = highScore;
             settingsHighScore.textContent = highScore;
         }
@@ -739,7 +744,6 @@
         showOverlay('mainMenu');
         resumeBtn.style.display = 'block';
         draw();
-        // 隐藏信息面板
         infoPanel.style.display = 'none';
     }
 
@@ -753,7 +757,6 @@
         messageArea.textContent = '⏸️ 已暂停';
         updateCheatBtnVisibility();
         draw();
-        // 信息面板保持隐藏（因为仍在暂停状态）
         infoPanel.style.display = 'none';
     }
 
@@ -1213,7 +1216,6 @@
             ctx.stroke();
             ctx.setLineDash([]);
         }
-        // 暂停覆盖层（全屏）
         if (gamePaused && gameActive) {
             ctx.fillStyle = 'rgba(0,0,0,0.6)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1240,7 +1242,6 @@
         }
     }
 
-    // ---------- 覆盖层管理 ----------
     function hideAllOverlays() {
         document.querySelectorAll('.overlay').forEach(el => el.classList.remove('active'));
     }
@@ -1298,7 +1299,6 @@
         galleryContent.innerHTML = html;
     }
 
-    // ---------- 菜单事件 ----------
     menuNewGame.addEventListener('click', () => {
         resetGame();
         hideAllOverlays();
@@ -1337,7 +1337,6 @@
         else pauseAndGoToMainMenu();
     });
 
-    // ---------- 键盘事件 ----------
     window.addEventListener('keydown', (e) => {
         const key = e.key.toLowerCase();
         if (key === 'escape') {
@@ -1356,7 +1355,6 @@
                 hideAllOverlays();
                 resumeBtn.style.display = 'none';
             }
-            // 如果暂停取消，显示信息面板
             if (!gamePaused) {
                 infoPanel.style.display = 'flex';
             } else {
@@ -1452,7 +1450,6 @@
         gameOver(true);
     });
 
-    // 初始显示主菜单
     hideAllOverlays();
     showOverlay('mainMenu');
     loadHighScore();
