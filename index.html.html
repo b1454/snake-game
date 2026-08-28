@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>梗王贪吃蛇 · V4.5</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body {
+            background: #0a0a12;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', 'Microsoft YaHei', monospace;
+            padding: 16px;
+        }
+        .game-box {
+            background: #14141e;
+            padding: 20px;
+            border-radius: 28px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9), inset 0 0 60px rgba(80,60,160,0.03);
+            width: 100%;
+            max-width: 700px;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 10px 10px;
+            border-bottom: 1px solid #1a1a30;
+        }
+        .game-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #e0d8c0;
+            letter-spacing: 4px;
+            font-family: 'Impact', 'Courier New', monospace;
+            text-shadow: 0 2px 0 #2a2210;
+        }
+        .game-title .snake { color: #6bc76b; }
+        .version-badge {
+            background: #1a1a30;
+            color: #666688;
+            padding: 4px 14px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            border: 1px solid #2a2a44;
+        }
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 12px auto 0;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: #1a1a2a;
+            border-radius: 16px;
+            box-shadow: 0 0 0 2px #2a2a44, 0 20px 40px rgba(0,0,0,0.6);
+            width: 100%;
+            height: auto;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 50% 30%, #1a1a30 0%, #0c0c18 100%);
+            border-radius: 16px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.02);
+            overflow-y: auto;
+        }
+        .overlay.active { display: flex; }
+        .overlay-title {
+            font-size: 2rem;
+            color: #f0e8d0;
+            letter-spacing: 6px;
+            font-family: 'Impact', 'Courier New', monospace;
+            text-shadow: 0 0 40px rgba(200,180,100,0.06), 0 4px 0 #2a2210;
+            margin-bottom: 8px;
+        }
+        .overlay-sub {
+            color: #4a4a6a;
+            font-size: 0.8rem;
+            letter-spacing: 8px;
+            font-family: 'Impact', monospace;
+            margin-bottom: 16px;
+        }
+        .overlay-content {
+            width: 100%;
+            max-width: 450px;
+            max-height: 70%;
+            overflow-y: auto;
+            color: #a0a0b8;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            padding: 0 8px;
+            text-align: left;
+        }
+        .overlay-content .item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 12px;
+            border-bottom: 1px solid #1a1a30;
+            font-size: 0.9rem;
+        }
+        .overlay-content .item .emoji { font-size: 1.3rem; width: 32px; text-align: center; }
+        .overlay-content .item .name { color: #c8c0b0; }
+        .overlay-content .item .desc { color: #666688; font-size: 0.8rem; margin-left: auto; }
+        .overlay-content .section { color: #8888aa; font-weight: bold; margin-top: 12px; border-bottom: 1px solid #1a1a30; padding-bottom: 4px; }
+        .overlay-content .key { color: #6bc76b; background: #1a1a30; padding: 2px 10px; border-radius: 4px; font-size: 0.8rem; }
+        .overlay-content .dev-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid #1a1a30;
+            font-size: 0.9rem;
+        }
+        .overlay-content .dev-entry .role { color: #666688; }
+        .overlay-content .dev-entry .name { color: #c8c0b0; }
+        .menu-btn {
+            width: 200px;
+            padding: 12px 0;
+            margin: 5px 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #a0a0b8;
+            background: rgba(255,255,255,0.01);
+            border: 1px solid rgba(255,255,255,0.03);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            letter-spacing: 4px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+        }
+        .menu-btn:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(200,180,120,0.1);
+            color: #e0d8c0;
+        }
+        .menu-btn:active { transform: scale(0.97); }
+        .menu-btn.special { border-color: rgba(100,200,150,0.08); color: #7ab890; }
+        .menu-btn.special:hover { border-color: rgba(100,200,150,0.2); color: #8ac8a0; }
+        .menu-btn.danger { border-color: rgba(200,80,80,0.08); color: #aa6a6a; }
+        .menu-btn.danger:hover { border-color: rgba(200,80,80,0.2); color: #cc7a7a; }
+        .menu-btn.dev { border-color: rgba(150,120,200,0.08); color: #9a8ab8; }
+        .menu-btn.dev:hover { border-color: rgba(150,120,200,0.2); color: #b8a8d0; }
+        .menu-btn.back {
+            border-color: rgba(255,255,255,0.05);
+            color: #666688;
+            width: 140px;
+            padding: 10px 0;
+            font-size: 0.9rem;
+            margin-top: 12px;
+        }
+        .menu-btn.back:hover { border-color: rgba(255,255,255,0.1); color: #8888aa; }
+        .menu-btn.resume {
+            border-color: rgba(100,200,150,0.2);
+            color: #7ab890;
+        }
+        .menu-btn.resume:hover { border-color: rgba(100,200,150,0.4); color: #8ac8a0; }
+        .menu-hint {
+            color: #4a4a6a;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            margin-top: 4px;
+            border-top: 1px solid #1a1a30;
+            padding-top: 10px;
+            width: 60%;
+            text-align: center;
+        }
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #1a1a30;
+            width: 100%;
+        }
+        .settings-row span { color: #8888aa; font-size: 0.95rem; }
+        .settings-row .value { color: #c8c0b0; font-weight: bold; }
+        .settings-row .speed-options {
+            display: flex;
+            gap: 10px;
+        }
+        .settings-row .speed-options label {
+            color: #666688;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+        .settings-row .speed-options input[type="radio"] {
+            accent-color: #8ac8a0;
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+        .settings-row .speed-options input[type="radio"]:checked + span { color: #c8c0b0; }
+        .toggle-btn {
+            background: #1a1a30;
+            border: 1px solid #2a2a44;
+            color: #8888aa;
+            padding: 4px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+        .toggle-btn:hover { background: #2a2a44; color: #b0b0cc; }
+        .toggle-btn.on { border-color: rgba(100,200,150,0.3); color: #7ab890; }
+        #cheatBtn {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            background: rgba(0,0,0,0.35);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            user-select: none;
+            transition: all 0.2s;
+            display: none;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        #cheatBtn:hover { background: rgba(255,255,255,0.06); }
+        /* ---- 信息面板默认隐藏，只在游戏进行时显示 ---- */
+        .info-panel {
+            display: none;
+            justify-content: space-around;
+            align-items: center;
+            margin: 10px 0 4px;
+            color: #666688;
+            font-weight: bold;
+            font-size: 1rem;
+            letter-spacing: 2px;
+        }
+        .info-panel span { color: #8888aa; }
+        .btn {
+            background: #1a1a30;
+            border: 1px solid #2a2a44;
+            color: #8888aa;
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 8px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            letter-spacing: 2px;
+            margin-top: 8px;
+        }
+        .btn:hover { background: #2a2a44; border-color: #4a4a6a; color: #b0b0cc; }
+        .btn:active { transform: scale(0.97); }
+        .message {
+            color: #666688;
+            font-size: 0.95rem;
+            min-height: 26px;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+        .control-btn {
+            background: #1a1a30;
+            border: 1px solid #2a2a44;
+            color: #666688;
+            font-size: 1.4rem;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .control-btn:active { background: #2a2a44; transform: scale(0.94); }
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(3, 50px);
+            gap: 5px;
+            margin: 4px auto;
+            justify-content: center;
+        }
+        .dpad-btn {
+            background: #1a1a30;
+            border: 1px solid #2a2a44;
+            color: #666688;
+            font-size: 1.4rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .dpad-btn:active { background: #2a2a44; transform: scale(0.94); }
+        .hidden { display: none; }
+        .extra-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        #autoBtn, #winBtn, #backToMenuBtn {
+            padding: 6px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            letter-spacing: 1px;
+            background: rgba(255,255,255,0.02);
+            color: #666688;
+        }
+        #autoBtn:hover, #winBtn:hover, #backToMenuBtn:hover {
+            background: rgba(255,255,255,0.04);
+            color: #8888aa;
+        }
+        #autoBtn { display: none; border-color: rgba(100,200,150,0.1); color: #6a9a80; }
+        #winBtn { display: none; border-color: rgba(255,180,50,0.1); color: #b8985a; }
+        #backToMenuBtn { display: none; }
+        @media (max-width: 500px) {
+            .game-title { font-size: 1.4rem; }
+            .overlay-title { font-size: 1.6rem; }
+            .menu-btn { width: 160px; font-size: 1rem; }
+            .settings-row .speed-options { flex-wrap: wrap; justify-content: center; }
+            .dpad { display: grid; }
+            .controls { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-box">
+    <div class="title-row">
+        <div class="game-title"><span class="snake">🐍</span> 梗王贪吃蛇</div>
+        <span class="version-badge">V4.5</span>
+    </div>
+    <div class="canvas-wrapper">
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+
+        <!-- 主菜单 -->
+        <div id="mainMenu" class="overlay active">
+            <div class="overlay-title">🐍 梗王贪吃蛇</div>
+            <div class="overlay-sub">PICK SOUND</div>
+            <div class="menu-btn resume" id="resumeBtn" style="display:none;">▶ 继续</div>
+            <div class="menu-btn" id="menuNewGame">▶ 新游戏</div>
+            <div class="menu-btn special" id="menuTutorial">? 教程</div>
+            <div class="menu-btn" id="menuGallery">▣ 图鉴</div>
+            <div class="menu-btn" id="menuSettings">⚙ 设置</div>
+            <div class="menu-btn dev" id="menuDev">👨‍💻 开发者名单</div>
+            <div class="menu-btn danger" id="menuExit">✕ 退出游戏</div>
+            <div class="menu-hint">⚙ 速度请在设置中调整</div>
+            <div style="color:#3a3a5a;font-size:0.65rem;letter-spacing:8px;font-family:'Impact',monospace;border-top:1px solid #1a1a30;padding-top:12px;width:60%;text-align:center;">◆ SELECT ◆</div>
+        </div>
+
+        <!-- 教程 -->
+        <div id="tutorialMenu" class="overlay">
+            <div class="overlay-title">📖 教程</div>
+            <div class="overlay-sub">HOW TO PLAY</div>
+            <div class="overlay-content">
+                <div class="section">🎮 基本操作</div>
+                <div><span class="key">↑</span> <span class="key">W</span> 向上移动</div>
+                <div><span class="key">↓</span> <span class="key">S</span> 向下移动</div>
+                <div><span class="key">←</span> <span class="key">A</span> 向左移动</div>
+                <div><span class="key">→</span> <span class="key">D</span> 向右移动</div>
+                <div><span class="key">P</span> 暂停 / 继续</div>
+                <div><span class="key">Esc</span> 返回主菜单（游戏暂停）</div>
+                <div class="section" style="margin-top:12px;">🍎 食物系统</div>
+                <div>吃食物增加分数，蛇身变长</div>
+                <div>💣 炸弹：扣1条命</div>
+                <div>⚡ 加速：蛇移动速度提升</div>
+                <div>🛡️ 护盾：抵挡一次撞墙/自撞</div>
+                <div>🕳️ 黑洞：传送蛇头（缓慢移动）</div>
+                <div class="section" style="margin-top:12px;">🎯 特殊食物</div>
+                <div>☢️ 核燃料棒：加速但扣1命</div>
+                <div>⚛️ 控制棒：方向随机改变</div>
+                <div>🔥 开盖有奖：+100分，全屏闪烁</div>
+                <div>⚡ 雷霆控制棒：穿墙加速5秒</div>
+                <div class="section" style="margin-top:12px;">🕳️ 黑洞传送</div>
+                <div>吃下黑洞后，蛇头会逐步移动到安全位置</div>
+                <div>若途中撞墙或撞自己，传送中断</div>
+            </div>
+            <div class="menu-btn back" id="tutorialBack">← 返回</div>
+        </div>
+
+        <!-- 图鉴 -->
+        <div id="galleryMenu" class="overlay">
+            <div class="overlay-title">▣ 图鉴</div>
+            <div class="overlay-sub">FOOD GALLERY</div>
+            <div class="overlay-content" id="galleryContent"></div>
+            <div class="menu-btn back" id="galleryBack">← 返回</div>
+        </div>
+
+        <!-- 设置 -->
+        <div id="settingsMenu" class="overlay">
+            <div class="overlay-title">⚙ 设置</div>
+            <div class="overlay-sub">SETTINGS</div>
+            <div class="overlay-content">
+                <div class="settings-row">
+                    <span>🎵 音效</span>
+                    <button class="toggle-btn on" id="soundToggle">开启</button>
+                </div>
+                <div class="settings-row">
+                    <span>⏱️ 速度</span>
+                    <div class="speed-options">
+                        <label><input type="radio" name="speedSetting" value="300"> <span>慢</span></label>
+                        <label><input type="radio" name="speedSetting" value="220" checked> <span>中</span></label>
+                        <label><input type="radio" name="speedSetting" value="150"> <span>快</span></label>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <span>📊 最高分</span>
+                    <span class="value" id="settingsHighScore">0</span>
+                </div>
+                <div class="settings-row">
+                    <span>📅 更新日期</span>
+                    <span class="value">2026年8月27日</span>
+                </div>
+                <div style="color:#4a4a6a;font-size:0.8rem;margin-top:12px;text-align:center;border-top:1px solid #1a1a30;padding-top:12px;">
+                    速度调整后，新游戏将立即生效
+                </div>
+            </div>
+            <div class="menu-btn back" id="settingsBack">← 返回</div>
+        </div>
+
+        <!-- 开发者 -->
+        <div id="devMenu" class="overlay">
+            <div class="overlay-title">👨‍💻 开发者名单</div>
+            <div class="overlay-sub">CREDITS</div>
+            <div class="overlay-content">
+                <div class="dev-entry"><span class="role">🎮 游戏设计</span><span class="name">冯高汶</span></div>
+                <div class="dev-entry"><span class="role">🐍 核心玩法</span><span class="name">冯高汶</span></div>
+                <div class="dev-entry"><span class="role">🍎 食物系统</span><span class="name">冯高汶</span></div>
+                <div class="dev-entry"><span class="role">🖥️ 暗号系统</span><span class="name">冯高汶</span></div>
+                <div class="dev-entry"><span class="role">🎨 界面设计</span><span class="name">冯高汶</span></div>
+                <div class="dev-entry"><span class="role">📝 梗创意</span><span class="name">冯高汶</span></div>
+                <div class="dev-entry"><span class="role">🤖 技术支持</span><span class="name">DeepSeek</span></div>
+                <div class="dev-entry"><span class="role">🧪 测试员</span><span class="name">冯高汶</span></div>
+                <div class="dev-entry"><span class="role">📦 版本管理</span><span class="name">冯高汶</span></div>
+                <div class="section" style="margin-top:12px;">📌 关于游戏</div>
+                <div style="color:#666688;font-size:0.85rem;padding:4px 0;">
+                    梗王贪吃蛇 V4.5<br>
+                    由 冯高汶 设计并制作<br>
+                    灵感来自回春丹、草东没有派对、核电站综合体
+                </div>
+                <div class="section" style="margin-top:12px;">🙏 特别感谢</div>
+                <div style="color:#666688;font-size:0.85rem;padding:4px 0;">
+                    黄崇城 · 莫俊鑫 · 何雨些<br>
+                    回春丹乐队 · 草东没有派对<br>
+                    以及所有玩过这个游戏的人
+                </div>
+            </div>
+            <div class="menu-btn back" id="devBack">← 返回</div>
+        </div>
+
+        <div id="cheatBtn">🖥️</div>
+    </div>
+    <!-- 信息面板，默认隐藏 -->
+    <div class="info-panel" id="infoPanel">
+        <span>❤️ <span id="lives">3</span></span>
+        <span>💥 <span id="score">0</span></span>
+        <span>🔥 <span id="combo">0</span></span>
+        <span>🏆 <span id="highScore">0</span></span>
+    </div>
+    <div class="message" id="messageArea"></div>
+    <div class="controls" id="desktopControls">
+        <button class="control-btn" data-dir="up">↑</button>
+        <button class="control-btn" data-dir="left">←</button>
+        <button class="control-btn" data-dir="down">↓</button>
+        <button class="control-btn" data-dir="right">→</button>
+    </div>
+    <div class="dpad hidden" id="mobileDpad">
+        <div></div><button class="dpad-btn" data-dir="up">↑</button><div></div>
+        <button class="dpad-btn" data-dir="left">←</button>
+        <button class="dpad-btn" data-dir="pause">⏸️</button>
+        <button class="dpad-btn" data-dir="right">→</button>
+        <div></div><button class="dpad-btn" data-dir="down">↓</button><div></div>
+    </div>
+    <div class="extra-buttons">
+        <button id="autoBtn">🤖 自动寻路</button>
+        <button id="winBtn">🚀 一键通关</button>
+        <button id="backToMenuBtn">🏠 主菜单</button>
+    </div>
+    <button class="btn" id="restartBtn">🔄 重新开始</button>
+</div>
+<script>
+(function() {
+    const GAME_VERSION = '4.5';
+    const UPDATE_DATE = '2026年8月27日';
+    console.log('梗王贪吃蛇 V' + GAME_VERSION + ' 更新日期: ' + UPDATE_DATE);
+
+    // DOM
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const livesSpan = document.getElementById('lives');
+    const scoreSpan = document.getElementById('score');
+    const comboSpan = document.getElementById('combo');
+    const highScoreSpan = document.getElementById('highScore');
+    const messageArea = document.getElementById('messageArea');
+    const restartBtn = document.getElementById('restartBtn');
+    const cheatBtn = document.getElementById('cheatBtn');
+    const autoBtn = document.getElementById('autoBtn');
+    const winBtn = document.getElementById('winBtn');
+    const backToMenuBtn = document.getElementById('backToMenuBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const infoPanel = document.getElementById('infoPanel');
+
+    // 覆盖层
+    const mainMenu = document.getElementById('mainMenu');
+    const tutorialMenu = document.getElementById('tutorialMenu');
+    const galleryMenu = document.getElementById('galleryMenu');
+    const settingsMenu = document.getElementById('settingsMenu');
+    const devMenu = document.getElementById('devMenu');
+    const galleryContent = document.getElementById('galleryContent');
+    const soundToggle = document.getElementById('soundToggle');
+    const settingsHighScore = document.getElementById('settingsHighScore');
+
+    const menuNewGame = document.getElementById('menuNewGame');
+    const menuTutorial = document.getElementById('menuTutorial');
+    const menuGallery = document.getElementById('menuGallery');
+    const menuSettings = document.getElementById('menuSettings');
+    const menuDev = document.getElementById('menuDev');
+    const menuExit = document.getElementById('menuExit');
+    const tutorialBack = document.getElementById('tutorialBack');
+    const galleryBack = document.getElementById('galleryBack');
+    const settingsBack = document.getElementById('settingsBack');
+    const devBack = document.getElementById('devBack');
+
+    const speedRadios = document.querySelectorAll('input[name="speedSetting"]');
+
+    const COLS = 20, ROWS = 20, CELL_SIZE = canvas.width / COLS;
+    const INIT_LIVES = 3, MAX_COMBO = 10;
+    const FOOD_EXPIRE_TIME = 8000;
+    const SPAWN_X = 10, SPAWN_Y = 10;
+
+    let BASE_SPEED = 220, MIN_SPEED = 70;
+    let snake, direction, nextDirection, food, foodType, foodSpawnTime;
+    let lives, score, combo, highScore, gameActive, gamePaused, gameSpeed;
+    let moveInterval, shieldActive, shieldDuration, comboResetTime;
+    let ghostModeActive, ghostModeTimer, doubleScoreActive, doubleScoreTimer;
+    let infiniteLives = false, autoMode = false, autoInterval = null, pauseStartTime = 0;
+    let soundEnabled = true;
+
+    let isTeleporting = false;
+    let teleportTargetX = 0, teleportTargetY = 0;
+    let teleportStartX = 0, teleportStartY = 0;
+    let isPausedToMenu = false;
+
+    function playSound() {}
+
+    const GAG_FOODS = [
+        { emoji: '🐛', name: 'Bug虫', score: 10 },
+        { emoji: '📝', name: '甲方需求', score: 15 },
+        { emoji: '🗓️', name: 'DDL', score: 12 },
+        { emoji: '🎮', name: '坦克梗', score: 20 },
+        { emoji: '🤖', name: 'DeepSeek', score: 30 },
+        { emoji: '🎵', name: '孤勇者', score: 18 },
+        { emoji: '💃', name: '科目三', score: 15 },
+        { emoji: '🐔', name: '只因你太美', score: 25 },
+        { emoji: '🧱', name: 'MC方块', score: 10 },
+        { emoji: '⌨️', name: '键盘侠', score: 15 },
+        { emoji: '🚀', name: '火箭队', score: 22 },
+        { emoji: '⭐', name: '星星', score: 50 },
+        { emoji: '☢️', name: '核燃料棒', score: 30, special: 'nuclear' },
+        { emoji: '⚛️', name: '控制棒', score: 15, special: 'control' },
+        { emoji: '🔥', name: '开盖有奖', score: 50, special: 'reward' },
+        { emoji: '⚡', name: '雷霆控制棒', score: 20, special: 'thunder' },
+        { emoji: '🌊', name: '深海迷航', score: 35 },
+        { emoji: '🎸', name: '草东歌单', score: 25 },
+        { emoji: '💊', name: '回春丹药丸', score: 20 },
+        { emoji: '📀', name: '荣耀铃声', score: 18 },
+        { emoji: '🖥️', name: 'GT730', score: 12 },
+        { emoji: '📱', name: '荣耀8', score: 15 },
+        { emoji: '🧸', name: '娜塔莎', score: 8 },
+        { emoji: '🏠', name: '荔浦小屋', score: 22 },
+        { emoji: '🥚', name: '金蛋彩蛋', score: 100 },
+        { emoji: '🌈', name: '彩虹彩蛋', score: 80 },
+        { emoji: '👻', name: '幽灵彩蛋', score: 0, special: 'ghost' },
+        { emoji: '🎁', name: '礼物彩蛋', score: 0, special: 'big' },
+    ];
+    const BOMB = { emoji: '💣', name: '炸弹', score: -1 };
+    const SPEED_UP = { emoji: '⚡', name: '加速', score: 5 };
+    const SHIELD = { emoji: '🛡️', name: '护盾', score: 5 };
+    const BLACK_HOLE = { emoji: '🕳️', name: '黑洞', score: 0 };
+
+    const EGG_EVENTS = [
+        { text: '🎉 彩蛋！全屏下起食物雨！', effect: 'foodRain' },
+        { text: '🃏 梗王降临！所有食物变成彩蛋！', effect: 'allEgg' },
+        { text: '✨ 幸运时刻！双倍分数30秒！', effect: 'doubleScore' },
+        { text: '☢️ 核燃料泄露！全屏闪烁！', effect: 'nuclearFlash' },
+        { text: '🔥 开盖有奖！所有食物变成核燃料棒！', effect: 'fuelRain' },
+        { text: '⚡ 雷霆控制棒！蛇身带电！', effect: 'lightningMode' },
+    ];
+
+    // ---------- 核心函数 ----------
+    function resetGame() {
+        clearInterval(moveInterval);
+        if (autoInterval) { clearInterval(autoInterval); autoInterval = null; }
+        isTeleporting = false;
+        isPausedToMenu = false;
+        snake = [{x:SPAWN_X,y:SPAWN_Y},{x:SPAWN_X-1,y:SPAWN_Y},{x:SPAWN_X-2,y:SPAWN_Y}];
+        direction = 'right';
+        nextDirection = 'right';
+        lives = INIT_LIVES;
+        score = 0;
+        combo = 0;
+        comboResetTime = Date.now();
+        let speed = 220;
+        speedRadios.forEach(r => { if (r.checked) speed = parseInt(r.value); });
+        BASE_SPEED = speed;
+        MIN_SPEED = 70;
+        gameSpeed = BASE_SPEED;
+        gameActive = true;
+        gamePaused = false;
+        shieldActive = false;
+        shieldDuration = 0;
+        doubleScoreActive = false;
+        doubleScoreTimer = 0;
+        ghostModeActive = false;
+        ghostModeTimer = 0;
+        infiniteLives = false;
+        autoMode = false;
+        pauseStartTime = 0;
+        loadHighScore();
+        updateUI();
+        generateFood();
+        messageArea.textContent = 'V' + GAME_VERSION + ' | 撞墙扣1命，传送回出生点！';
+        startMove();
+        draw();
+        updateCheatBtnVisibility();
+        autoBtn.style.display = 'none';
+        winBtn.style.display = 'none';
+        backToMenuBtn.style.display = 'none';
+        resumeBtn.style.display = 'none';
+        hideAllOverlays();
+        // 显示信息面板
+        infoPanel.style.display = 'flex';
+    }
+
+    function loadHighScore() {
+        const saved = localStorage.getItem('gagSnakeHighScoreV4_5');
+        highScore = saved ? parseInt(saved,10) : 0;
+        highScoreSpan.textContent = highScore;
+        settingsHighScore.textContent = highScore;
+    }
+    function saveHighScore() {
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('gagSnakeHighScoreV4_5', highScore);
+            highScoreSpan.textContent = highScore;
+            settingsHighScore.textContent = highScore;
+        }
+    }
+
+    function startMove() {
+        clearInterval(moveInterval);
+        moveInterval = setInterval(() => {
+            if (!gameActive || gamePaused) return;
+            if (autoMode) autoMove();
+            moveSnake();
+            checkFoodExpire();
+            checkSpecialTimers();
+            draw();
+        }, gameSpeed);
+    }
+
+    function updateUI() {
+        livesSpan.textContent = infiniteLives ? '∞' : lives;
+        scoreSpan.textContent = score;
+        comboSpan.textContent = combo;
+        highScoreSpan.textContent = highScore;
+        settingsHighScore.textContent = highScore;
+    }
+
+    function updateCheatBtnVisibility() {
+        cheatBtn.style.display = (gamePaused && gameActive) ? 'flex' : 'none';
+    }
+
+    function togglePause() {
+        if (!gameActive) return;
+        if (gamePaused) {
+            if (food) { const d = Date.now() - pauseStartTime; foodSpawnTime += d; }
+            gamePaused = false;
+            messageArea.textContent = '▶️ 继续';
+            isPausedToMenu = false;
+            hideAllOverlays();
+        } else {
+            pauseStartTime = Date.now();
+            gamePaused = true;
+            messageArea.textContent = '⏸️ 已暂停';
+        }
+        updateCheatBtnVisibility();
+        if (!gamePaused) draw();
+        else draw();
+    }
+
+    function pauseAndGoToMainMenu() {
+        if (!gameActive) {
+            goToMainMenu();
+            return;
+        }
+        if (!gamePaused) {
+            pauseStartTime = Date.now();
+            gamePaused = true;
+            messageArea.textContent = '⏸️ 已暂停';
+        }
+        isPausedToMenu = true;
+        updateCheatBtnVisibility();
+        hideAllOverlays();
+        showOverlay('mainMenu');
+        resumeBtn.style.display = 'block';
+        draw();
+        // 隐藏信息面板
+        infoPanel.style.display = 'none';
+    }
+
+    function resumeGame() {
+        if (!gameActive) {
+            resumeBtn.style.display = 'none';
+            return;
+        }
+        isPausedToMenu = false;
+        hideAllOverlays();
+        messageArea.textContent = '⏸️ 已暂停';
+        updateCheatBtnVisibility();
+        draw();
+        // 信息面板保持隐藏（因为仍在暂停状态）
+        infoPanel.style.display = 'none';
+    }
+
+    function goToMainMenu() {
+        gameActive = false;
+        clearInterval(moveInterval);
+        if (autoInterval) clearInterval(autoInterval);
+        isTeleporting = false;
+        isPausedToMenu = false;
+        autoBtn.style.display = 'none';
+        winBtn.style.display = 'none';
+        backToMenuBtn.style.display = 'none';
+        cheatBtn.style.display = 'none';
+        resumeBtn.style.display = 'none';
+        hideAllOverlays();
+        showOverlay('mainMenu');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#1a1a2a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        messageArea.textContent = '请从主菜单开始';
+        messageArea.style.color = '#666';
+        infoPanel.style.display = 'none';
+    }
+
+    function updateCombo() {
+        const now = Date.now();
+        if (now - comboResetTime > 3000) combo = 0;
+        combo = Math.min(combo + 1, MAX_COMBO);
+        comboResetTime = now;
+        comboSpan.textContent = combo;
+    }
+    function getComboMultiplier() {
+        let mult = 1 + combo * 0.1;
+        if (doubleScoreActive) mult *= 2;
+        return mult;
+    }
+
+    function generateFood() {
+        let attempts = 0, foodPos;
+        while (attempts < 500) {
+            const x = Math.floor(Math.random() * COLS);
+            const y = Math.floor(Math.random() * ROWS);
+            if (!snake.some(seg => seg.x === x && seg.y === y)) {
+                foodPos = {x,y};
+                break;
+            }
+            attempts++;
+        }
+        if (!foodPos) { gameOver(true); return; }
+        food = foodPos;
+        foodSpawnTime = Date.now();
+        const rand = Math.random();
+        if (rand < 0.03) foodType = { emoji: '🥚', name: '金蛋彩蛋', score: 100 };
+        else if (rand < 0.05) foodType = { emoji: '🌈', name: '彩虹彩蛋', score: 80 };
+        else if (rand < 0.07) foodType = { emoji: '👻', name: '幽灵彩蛋', score: 0, special: 'ghost' };
+        else if (rand < 0.09) foodType = { emoji: '🎁', name: '礼物彩蛋', score: 0, special: 'big' };
+        else if (rand < 0.16) foodType = BOMB;
+        else if (rand < 0.26) foodType = SPEED_UP;
+        else if (rand < 0.36) foodType = SHIELD;
+        else if (rand < 0.44) foodType = BLACK_HOLE;
+        else foodType = GAG_FOODS[Math.floor(Math.random() * GAG_FOODS.length)];
+
+        if (Math.random() < 0.01 && gameActive) triggerRandomEvent();
+    }
+
+    function triggerRandomEvent() {
+        const event = EGG_EVENTS[Math.floor(Math.random() * EGG_EVENTS.length)];
+        messageArea.textContent = event.text;
+        messageArea.style.color = '#ccaa66';
+        switch(event.effect) {
+            case 'foodRain':
+                for (let i=0;i<5;i++) setTimeout(() => { if (gameActive) generateFood(); }, i*200);
+                break;
+            case 'allEgg':
+                if (food && foodType) foodType = { emoji: '🥚', name: '金蛋彩蛋', score: 100 };
+                break;
+            case 'doubleScore':
+                doubleScoreActive = true; doubleScoreTimer = 30000;
+                break;
+            case 'nuclearFlash':
+                document.body.style.backgroundColor = '#442200';
+                setTimeout(() => document.body.style.backgroundColor = '#0a0a12', 300);
+                break;
+            case 'fuelRain':
+                for (let i=0;i<5;i++) setTimeout(() => {
+                    if (gameActive) {
+                        const oldType = foodType;
+                        foodType = { emoji: '☢️', name: '核燃料棒', score: 30, special: 'nuclear' };
+                        generateFood();
+                        foodType = oldType;
+                    }
+                }, i*200);
+                break;
+            case 'lightningMode':
+                ghostModeActive = true; ghostModeTimer = 5000;
+                gameSpeed = Math.max(MIN_SPEED, gameSpeed - 40);
+                clearInterval(moveInterval); startMove();
+                break;
+        }
+    }
+
+    function checkSpecialTimers() {
+        if (doubleScoreActive) {
+            doubleScoreTimer -= gameSpeed;
+            if (doubleScoreTimer <= 0) { doubleScoreActive = false; messageArea.textContent = '双倍分数结束'; messageArea.style.color = '#666'; }
+        }
+        if (ghostModeActive) {
+            ghostModeTimer -= gameSpeed;
+            if (ghostModeTimer <= 0) { ghostModeActive = false; messageArea.textContent = '幽灵模式结束'; messageArea.style.color = '#666'; }
+        }
+    }
+
+    function checkFoodExpire() {
+        if (!food || !gameActive || gamePaused) return;
+        if (Date.now() - foodSpawnTime >= FOOD_EXPIRE_TIME) {
+            food = null; foodType = null;
+            messageArea.textContent = '⏰ 食物过期消失了...';
+            messageArea.style.color = '#666';
+            generateFood();
+            draw();
+        }
+    }
+
+    function handleHitWall() {
+        if (shieldActive) { shieldActive = false; shieldDuration = 0; messageArea.textContent = '🛡️ 护盾挡住了撞墙！'; messageArea.style.color = '#66cccc'; return; }
+        if (infiniteLives) { messageArea.textContent = '🛡️ 无限命！撞墙不扣命，传送回出生点'; messageArea.style.color = '#66cccc'; relocateSnakeToSpawn(); generateFood(); draw(); return; }
+        lives--; updateUI();
+        if (lives <= 0) { gameOver(false); return; }
+        messageArea.textContent = '💥 撞墙！生命-1，传送回出生点';
+        messageArea.style.color = '#cc8844';
+        relocateSnakeToSpawn(); generateFood(); draw();
+    }
+
+    function handleHitSelf() {
+        if (shieldActive) { shieldActive = false; shieldDuration = 0; messageArea.textContent = '🛡️ 护盾挡住了自撞！'; messageArea.style.color = '#66cccc'; return; }
+        if (infiniteLives) { messageArea.textContent = '🛡️ 无限命！自撞不扣命，传送回出生点'; messageArea.style.color = '#66cccc'; relocateSnakeToSpawn(); generateFood(); draw(); return; }
+        lives--; updateUI();
+        if (lives <= 0) { gameOver(false); return; }
+        messageArea.textContent = '💥 撞到自己！生命-1，传送回出生点';
+        messageArea.style.color = '#cc8844';
+        relocateSnakeToSpawn(); generateFood(); draw();
+    }
+
+    function teleportSnake() {
+        if (isTeleporting) return;
+        for (let i = 0; i < 300; i++) {
+            const x = 2 + Math.floor(Math.random() * (COLS - 4));
+            const y = 2 + Math.floor(Math.random() * (ROWS - 4));
+            if (!snake.some(seg => seg.x === x && seg.y === y)) {
+                teleportTargetX = x;
+                teleportTargetY = y;
+                teleportStartX = snake[0].x;
+                teleportStartY = snake[0].y;
+                isTeleporting = true;
+                messageArea.textContent = '🕳️ 传送中...';
+                messageArea.style.color = '#9966cc';
+                return;
+            }
+        }
+        snake[0] = {x: SPAWN_X, y: SPAWN_Y};
+        messageArea.textContent = '🕳️ 黑洞传送！';
+        messageArea.style.color = '#9966cc';
+    }
+
+    function stepTeleport() {
+        if (!isTeleporting) return;
+        const head = snake[0];
+        const dx = teleportTargetX - head.x;
+        const dy = teleportTargetY - head.y;
+        if (dx === 0 && dy === 0) {
+            isTeleporting = false;
+            messageArea.textContent = '✅ 传送完成！';
+            messageArea.style.color = '#66aa88';
+            return;
+        }
+        let moveX = 0, moveY = 0;
+        if (Math.abs(dx) >= Math.abs(dy)) {
+            if (dx > 0) moveX = 1;
+            else if (dx < 0) moveX = -1;
+        } else {
+            if (dy > 0) moveY = 1;
+            else if (dy < 0) moveY = -1;
+        }
+        const newHead = {x: head.x + moveX, y: head.y + moveY};
+        if (newHead.x < 0 || newHead.x >= COLS || newHead.y < 0 || newHead.y >= ROWS) {
+            isTeleporting = false;
+            snake[0] = {x: teleportStartX, y: teleportStartY};
+            messageArea.textContent = '💥 传送中断！撞墙';
+            messageArea.style.color = '#cc5555';
+            return;
+        }
+        if (snake.some(seg => seg.x === newHead.x && seg.y === newHead.y && seg !== head)) {
+            isTeleporting = false;
+            snake[0] = {x: teleportStartX, y: teleportStartY};
+            messageArea.textContent = '💥 传送中断！撞到自己';
+            messageArea.style.color = '#cc5555';
+            return;
+        }
+        const newSnake = [newHead, ...snake.slice(0, -1)];
+        snake = newSnake;
+    }
+
+    function relocateSnakeToSpawn() {
+        const originalLength = snake.length;
+        const newSnake = [{x:SPAWN_X, y:SPAWN_Y}];
+        const opposite = getOppositeDir(direction);
+        const allDirs = [{x:0,y:-1,name:'up'},{x:0,y:1,name:'down'},{x:-1,y:0,name:'left'},{x:1,y:0,name:'right'}];
+        const startIdx = allDirs.findIndex(d => d.x === opposite.x && d.y === opposite.y);
+        const dirOrder = [];
+        for (let i=0;i<4;i++) dirOrder.push(allDirs[(startIdx+i)%4]);
+        let currentHead = newSnake[0];
+        let dirIndex = 0;
+        while (newSnake.length < originalLength) {
+            const dir = dirOrder[dirIndex % dirOrder.length];
+            const nx = currentHead.x + dir.x;
+            const ny = currentHead.y + dir.y;
+            if (nx>=0 && nx<COLS && ny>=0 && ny<ROWS && !newSnake.some(seg=>seg.x===nx && seg.y===ny)) {
+                currentHead = {x:nx, y:ny};
+                newSnake.push(currentHead);
+                dirIndex = 0;
+            } else {
+                dirIndex++;
+                if (dirIndex > 8) break;
+            }
+        }
+        snake = newSnake;
+    }
+
+    function getOppositeDir(dir) {
+        switch(dir) {
+            case 'up': return {x:0, y:1};
+            case 'down': return {x:0, y:-1};
+            case 'left': return {x:1, y:0};
+            case 'right': return {x:-1, y:0};
+            default: return {x:0, y:1};
+        }
+    }
+
+    function autoMove() {
+        if (!food) return;
+        const head = snake[0];
+        const dx = food.x - head.x, dy = food.y - head.y;
+        const dirs = [];
+        if (Math.abs(dx) >= Math.abs(dy)) {
+            if (dx > 0) dirs.push('right'); else if (dx < 0) dirs.push('left');
+            if (dy > 0) dirs.push('down'); else if (dy < 0) dirs.push('up');
+        } else {
+            if (dy > 0) dirs.push('down'); else if (dy < 0) dirs.push('up');
+            if (dx > 0) dirs.push('right'); else if (dx < 0) dirs.push('left');
+        }
+        for (let d of dirs) {
+            if (d === 'up' && direction !== 'down') { nextDirection = 'up'; return; }
+            if (d === 'down' && direction !== 'up') { nextDirection = 'down'; return; }
+            if (d === 'left' && direction !== 'right') { nextDirection = 'left'; return; }
+            if (d === 'right' && direction !== 'left') { nextDirection = 'right'; return; }
+        }
+        const fallbacks = ['up','down','left','right'];
+        for (let d of fallbacks) {
+            if (d === 'up' && direction !== 'down') { nextDirection = 'up'; return; }
+            if (d === 'down' && direction !== 'up') { nextDirection = 'down'; return; }
+            if (d === 'left' && direction !== 'right') { nextDirection = 'left'; return; }
+            if (d === 'right' && direction !== 'left') { nextDirection = 'right'; return; }
+        }
+    }
+
+    function moveSnake() {
+        if (!gameActive || gamePaused) return;
+        if (isTeleporting) {
+            stepTeleport();
+            return;
+        }
+        direction = nextDirection;
+        const head = {...snake[0]};
+        switch(direction) {
+            case 'up': head.y--; break;
+            case 'down': head.y++; break;
+            case 'left': head.x--; break;
+            case 'right': head.x++; break;
+        }
+        if (ghostModeActive) {
+            if (head.x < 0) head.x = COLS - 1;
+            if (head.x >= COLS) head.x = 0;
+            if (head.y < 0) head.y = ROWS - 1;
+            if (head.y >= ROWS) head.y = 0;
+        } else {
+            if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) { handleHitWall(); return; }
+            if (snake.some(seg => seg.x === head.x && seg.y === head.y)) { handleHitSelf(); return; }
+        }
+        snake.unshift(head);
+        if (food && head.x === food.x && head.y === food.y) { handleFood(); updateCombo(); generateFood(); }
+        else { snake.pop(); }
+        adjustSpeed();
+        if (shieldActive) { shieldDuration -= gameSpeed; if (shieldDuration <= 0) { shieldActive = false; messageArea.textContent = '护盾消失'; messageArea.style.color = '#666'; } }
+    }
+
+    function adjustSpeed() {
+        const lengthBonus = Math.floor(snake.length / 5) * 5;
+        gameSpeed = Math.max(MIN_SPEED, BASE_SPEED - lengthBonus);
+        clearInterval(moveInterval);
+        startMove();
+    }
+
+    function handleFood() {
+        if (foodType.special === 'ghost') {
+            ghostModeActive = true; ghostModeTimer = 3000;
+            messageArea.textContent = '👻 幽灵模式！穿墙3秒'; messageArea.style.color = '#9966cc';
+            score += 50; updateUI(); return;
+        }
+        if (foodType.special === 'big') {
+            const newLength = Math.max(3, Math.floor(snake.length / 2));
+            snake = snake.slice(0, newLength);
+            messageArea.textContent = '🎁 礼物彩蛋！蛇身缩短一半'; messageArea.style.color = '#ccaa66';
+            score += 30; updateUI(); return;
+        }
+        if (foodType.emoji === '🥚' || foodType.emoji === '🌈') {
+            const mult = getComboMultiplier();
+            const points = Math.round(foodType.score * mult);
+            score += points;
+            messageArea.textContent = foodType.emoji + ' 彩蛋！+' + points;
+            messageArea.style.color = '#ccaa66';
+            updateUI(); return;
+        }
+        if (foodType.special === 'nuclear') {
+            gameSpeed = Math.max(MIN_SPEED, gameSpeed - 20);
+            clearInterval(moveInterval); startMove();
+            score += 30;
+            if (!infiniteLives) { lives--; if (lives <= 0) { gameOver(false); return; } messageArea.textContent = '☢️ 核燃料棒！加速并扣1命！'; messageArea.style.color = '#cc6633'; }
+            else { messageArea.textContent = '☢️ 核燃料棒！加速！无限命抵消扣命！'; messageArea.style.color = '#66cccc'; }
+            updateUI(); return;
+        }
+        if (foodType.special === 'control') {
+            const dirs = ['up','down','left','right'];
+            nextDirection = dirs[Math.floor(Math.random() * dirs.length)];
+            score += 15;
+            messageArea.textContent = '⚛️ 控制棒！方向随机改变！';
+            messageArea.style.color = '#9966cc';
+            updateUI(); return;
+        }
+        if (foodType.special === 'reward') {
+            score += 100;
+            messageArea.textContent = '🔥 开盖有奖！全屏奖励！+100分';
+            messageArea.style.color = '#ffaa00';
+            document.body.style.backgroundColor = '#ffaa00';
+            setTimeout(() => document.body.style.backgroundColor = '#0a0a12', 300);
+            updateUI();
+            return;
+        }
+        if (foodType.special === 'thunder') {
+            ghostModeActive = true; ghostModeTimer = 5000;
+            gameSpeed = Math.max(MIN_SPEED, gameSpeed - 30);
+            clearInterval(moveInterval); startMove();
+            score += 20;
+            messageArea.textContent = '⚡ 雷霆控制棒！穿墙加速5秒！';
+            messageArea.style.color = '#66cccc';
+            updateUI(); return;
+        }
+        switch(foodType.emoji) {
+            case '💣':
+                if (!infiniteLives) { lives--; if (lives <= 0) { gameOver(false); return; } messageArea.textContent = '💥 炸弹！生命-1'; messageArea.style.color = '#cc4444'; }
+                else { messageArea.textContent = '💥 炸弹被无限命抵消！'; messageArea.style.color = '#66cccc'; }
+                updateUI(); break;
+            case '⚡':
+                gameSpeed = Math.max(MIN_SPEED, gameSpeed - 15);
+                clearInterval(moveInterval); startMove();
+                score += 5;
+                messageArea.textContent = '⚡ 加速！'; messageArea.style.color = '#cccc44';
+                updateUI(); break;
+            case '🛡️':
+                shieldActive = true; shieldDuration = 10000;
+                score += 5;
+                messageArea.textContent = '🛡️ 获得护盾！'; messageArea.style.color = '#66cccc';
+                updateUI(); break;
+            case '🕳️':
+                teleportSnake();
+                updateUI();
+                break;
+            default:
+                const multiplier = getComboMultiplier();
+                const points = Math.round(foodType.score * multiplier);
+                score += points;
+                messageArea.textContent = foodType.emoji + ' ' + foodType.name + ' +' + points;
+                messageArea.style.color = '#88aa88';
+                updateUI(); break;
+        }
+    }
+
+    function gameOver(won) {
+        if (!gameActive) return;
+        gameActive = false;
+        clearInterval(moveInterval);
+        if (autoInterval) { clearInterval(autoInterval); autoInterval = null; }
+        isTeleporting = false;
+        isPausedToMenu = false;
+        saveHighScore();
+        const msg = lives <= 0 ? '💀 游戏结束！' : '🏆 你赢了！';
+        messageArea.textContent = msg + ' 得分 ' + score;
+        messageArea.style.color = lives <= 0 ? '#cc5555' : '#ccaa66';
+        backToMenuBtn.style.display = 'inline-block';
+        draw();
+        updateCheatBtnVisibility();
+        autoBtn.style.display = 'none';
+        winBtn.style.display = 'none';
+        resumeBtn.style.display = 'none';
+        infoPanel.style.display = 'none';
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#2a2a44';
+        ctx.lineWidth = 0.5;
+        for (let i=0;i<=COLS;i++) { ctx.beginPath(); ctx.moveTo(i*CELL_SIZE,0); ctx.lineTo(i*CELL_SIZE,canvas.height); ctx.stroke(); }
+        for (let i=0;i<=ROWS;i++) { ctx.beginPath(); ctx.moveTo(0,i*CELL_SIZE); ctx.lineTo(canvas.width,i*CELL_SIZE); ctx.stroke(); }
+        if (food && foodType) {
+            const x = food.x * CELL_SIZE, y = food.y * CELL_SIZE;
+            ctx.font = CELL_SIZE*0.9 + 'px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(foodType.emoji, x+CELL_SIZE/2, y+CELL_SIZE/2);
+            const elapsed = Date.now() - foodSpawnTime;
+            const remaining = Math.max(0, 1 - elapsed / FOOD_EXPIRE_TIME);
+            ctx.fillStyle = remaining > 0.5 ? '#448844' : remaining > 0.25 ? '#aa8844' : '#884444';
+            ctx.fillRect(x, y-6, CELL_SIZE * remaining, 3);
+            if (foodType.emoji === '☢️') {
+                ctx.strokeStyle = '#cc6633'; ctx.lineWidth = 2;
+                ctx.shadowColor = '#cc6633'; ctx.shadowBlur = 15;
+                ctx.beginPath(); ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, CELL_SIZE*0.7, 0, 2*Math.PI); ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+        }
+        snake.forEach((seg, idx) => {
+            const x = seg.x * CELL_SIZE, y = seg.y * CELL_SIZE;
+            const gradient = ctx.createRadialGradient(x+CELL_SIZE/2, y+CELL_SIZE/2, 2, x+CELL_SIZE/2, y+CELL_SIZE/2, CELL_SIZE/2);
+            if (idx === 0) { gradient.addColorStop(0, '#6bc76b'); gradient.addColorStop(1, '#2d7a2d'); }
+            else { gradient.addColorStop(0, '#4CAF50'); gradient.addColorStop(1, '#1e5e1e'); }
+            ctx.fillStyle = gradient;
+            ctx.shadowColor = '#4CAF50'; ctx.shadowBlur = idx === 0 ? 10 : 3;
+            ctx.fillRect(x+2, y+2, CELL_SIZE-4, CELL_SIZE-4);
+            ctx.shadowBlur = 0;
+        });
+        if (ghostModeActive) {
+            const head = snake[0];
+            ctx.strokeStyle = 'rgba(150,150,255,0.25)'; ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.arc(head.x*CELL_SIZE+CELL_SIZE/2, head.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*1.1, 0, 2*Math.PI); ctx.stroke();
+            snake.forEach((seg, idx) => { if (idx % 2 === 0) { ctx.fillStyle = 'rgba(100,100,200,0.08)'; ctx.fillRect(seg.x*CELL_SIZE, seg.y*CELL_SIZE, CELL_SIZE, CELL_SIZE); } });
+        }
+        if (shieldActive) {
+            const head = snake[0];
+            ctx.strokeStyle = 'rgba(100,200,200,0.4)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(head.x*CELL_SIZE+CELL_SIZE/2, head.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.9, 0, 2*Math.PI); ctx.stroke();
+        }
+        if (isTeleporting) {
+            const head = snake[0];
+            ctx.strokeStyle = 'rgba(200,150,255,0.5)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.rect(head.x*CELL_SIZE, head.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        // 暂停覆盖层（全屏）
+        if (gamePaused && gameActive) {
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = 'bold 42px "Courier New", monospace';
+            ctx.fillStyle = '#dddddd';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⏸ 暂停中', canvas.width/2, canvas.height/2 - 20);
+            ctx.font = '18px "Courier New", monospace';
+            ctx.fillStyle = '#8888aa';
+            ctx.fillText('按 P 继续游戏', canvas.width/2, canvas.height/2 + 40);
+        }
+        if (!gameActive) {
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.font = 'bold 32px "Courier New", monospace';
+            ctx.fillStyle = '#ccaa66';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(lives <= 0 ? '💀 游戏结束' : '🏆 胜利', canvas.width/2, canvas.height/2 - 20);
+            ctx.font = '20px "Courier New", monospace';
+            ctx.fillStyle = '#8888aa';
+            ctx.fillText('得分: ' + score + '  最高: ' + highScore, canvas.width/2, canvas.height/2 + 35);
+        }
+    }
+
+    // ---------- 覆盖层管理 ----------
+    function hideAllOverlays() {
+        document.querySelectorAll('.overlay').forEach(el => el.classList.remove('active'));
+    }
+
+    function showOverlay(id) {
+        hideAllOverlays();
+        document.getElementById(id).classList.add('active');
+        if (id === 'galleryMenu') renderGallery();
+        if (id === 'settingsMenu') {
+            settingsHighScore.textContent = highScore;
+        }
+        if (id === 'mainMenu') {
+            if (gameActive && isPausedToMenu) {
+                resumeBtn.style.display = 'block';
+            } else {
+                resumeBtn.style.display = 'none';
+            }
+        }
+    }
+
+    function renderGallery() {
+        const allFoods = [
+            ...GAG_FOODS,
+            { emoji: '💣', name: '炸弹', score: -1 },
+            { emoji: '⚡', name: '加速', score: 5 },
+            { emoji: '🛡️', name: '护盾', score: 5 },
+            { emoji: '🕳️', name: '黑洞', score: 0 },
+        ];
+        let html = '';
+        const normal = allFoods.filter(f => !f.special && !['💣','⚡','🛡️','🕳️'].includes(f.emoji));
+        const special = allFoods.filter(f => f.special);
+        const items = allFoods.filter(f => ['💣','⚡','🛡️','🕳️'].includes(f.emoji));
+
+        html += '<div class="section">📦 普通食物</div>';
+        normal.forEach(f => {
+            html += `<div class="item"><span class="emoji">${f.emoji}</span><span class="name">${f.name}</span><span class="desc">+${f.score}分</span></div>`;
+        });
+        html += '<div class="section" style="margin-top:12px;">✨ 特殊食物</div>';
+        special.forEach(f => {
+            const desc = f.special === 'ghost' ? '幽灵模式' :
+                         f.special === 'big' ? '蛇身缩短' :
+                         f.special === 'nuclear' ? '加速扣命' :
+                         f.special === 'control' ? '方向随机' :
+                         f.special === 'reward' ? '开盖有奖' :
+                         f.special === 'thunder' ? '穿墙加速' : '';
+            html += `<div class="item"><span class="emoji">${f.emoji}</span><span class="name">${f.name}</span><span class="desc">${desc}</span></div>`;
+        });
+        html += '<div class="section" style="margin-top:12px;">💥 特殊道具</div>';
+        items.forEach(f => {
+            const desc = f.emoji === '💣' ? '扣1命' :
+                         f.emoji === '⚡' ? '加速' :
+                         f.emoji === '🛡️' ? '护盾' : '传送';
+            html += `<div class="item"><span class="emoji">${f.emoji}</span><span class="name">${f.name}</span><span class="desc">${desc}</span></div>`;
+        });
+        galleryContent.innerHTML = html;
+    }
+
+    // ---------- 菜单事件 ----------
+    menuNewGame.addEventListener('click', () => {
+        resetGame();
+        hideAllOverlays();
+    });
+
+    resumeBtn.addEventListener('click', resumeGame);
+
+    menuTutorial.addEventListener('click', () => showOverlay('tutorialMenu'));
+    tutorialBack.addEventListener('click', () => showOverlay('mainMenu'));
+
+    menuGallery.addEventListener('click', () => showOverlay('galleryMenu'));
+    galleryBack.addEventListener('click', () => showOverlay('mainMenu'));
+
+    menuSettings.addEventListener('click', () => showOverlay('settingsMenu'));
+    settingsBack.addEventListener('click', () => showOverlay('mainMenu'));
+
+    menuDev.addEventListener('click', () => showOverlay('devMenu'));
+    devBack.addEventListener('click', () => showOverlay('mainMenu'));
+
+    soundToggle.addEventListener('click', function() {
+        soundEnabled = !soundEnabled;
+        this.textContent = soundEnabled ? '开启' : '关闭';
+        this.classList.toggle('on');
+    });
+
+    speedRadios.forEach(r => { r.addEventListener('change', function() {}); });
+
+    menuExit.addEventListener('click', () => {
+        if (confirm('确定要退出吗？')) {
+            document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#666;font-family:monospace;font-size:1.2rem;">👋 游戏已关闭</div>';
+        }
+    });
+
+    backToMenuBtn.addEventListener('click', () => {
+        if (!gameActive) goToMainMenu();
+        else pauseAndGoToMainMenu();
+    });
+
+    // ---------- 键盘事件 ----------
+    window.addEventListener('keydown', (e) => {
+        const key = e.key.toLowerCase();
+        if (key === 'escape') {
+            if (mainMenu.classList.contains('active') && isPausedToMenu && gameActive) {
+                resumeGame();
+                return;
+            }
+            if (gameActive) pauseAndGoToMainMenu();
+            else goToMainMenu();
+            return;
+        }
+        if (!gameActive) return;
+        if (key === 'p') {
+            togglePause();
+            if (!gamePaused && mainMenu.classList.contains('active')) {
+                hideAllOverlays();
+                resumeBtn.style.display = 'none';
+            }
+            // 如果暂停取消，显示信息面板
+            if (!gamePaused) {
+                infoPanel.style.display = 'flex';
+            } else {
+                infoPanel.style.display = 'none';
+            }
+            return;
+        }
+        if (gamePaused) return;
+        if (isTeleporting) { e.preventDefault(); return; }
+        if (key === 'arrowup' || key === 'w') { if (direction !== 'down') nextDirection = 'up'; }
+        else if (key === 'arrowdown' || key === 's') { if (direction !== 'up') nextDirection = 'down'; }
+        else if (key === 'arrowleft' || key === 'a') { if (direction !== 'right') nextDirection = 'left'; }
+        else if (key === 'arrowright' || key === 'd') { if (direction !== 'left') nextDirection = 'right'; }
+        if (['arrowup','arrowdown','arrowleft','arrowright',' '].includes(e.key)) e.preventDefault();
+    });
+
+    document.querySelectorAll('[data-dir]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const dir = btn.dataset.dir;
+            if (dir === 'pause') {
+                if (gameActive) {
+                    togglePause();
+                    if (!gamePaused && mainMenu.classList.contains('active')) {
+                        hideAllOverlays();
+                        resumeBtn.style.display = 'none';
+                    }
+                    if (!gamePaused) {
+                        infoPanel.style.display = 'flex';
+                    } else {
+                        infoPanel.style.display = 'none';
+                    }
+                }
+                return;
+            }
+            if (!gameActive || gamePaused) return;
+            if (isTeleporting) return;
+            switch(dir) {
+                case 'up': if (direction !== 'down') nextDirection = 'up'; break;
+                case 'down': if (direction !== 'up') nextDirection = 'down'; break;
+                case 'left': if (direction !== 'right') nextDirection = 'left'; break;
+                case 'right': if (direction !== 'left') nextDirection = 'right'; break;
+            }
+        });
+    });
+
+    restartBtn.addEventListener('click', () => {
+        resetGame();
+        hideAllOverlays();
+    });
+
+    cheatBtn.addEventListener('click', function() {
+        if (!gamePaused || !gameActive) {
+            messageArea.textContent = '⏸️ 请先暂停游戏再输入暗号！';
+            messageArea.style.color = '#cc8844';
+            return;
+        }
+        const input = prompt('请输入暗号：');
+        if (input === '回春丹' || input === '草东没有派对' || input === '核电站综合体') {
+            infiniteLives = true; lives = 999; autoMode = true;
+            updateUI();
+            messageArea.textContent = '✨ 无限命 + 自动寻路已激活！';
+            messageArea.style.color = '#ccaa66';
+            autoBtn.style.display = 'inline-block';
+            winBtn.style.display = 'inline-block';
+        } else if (input !== null) {
+            messageArea.textContent = '❌ 暗号错误，再想想？';
+            messageArea.style.color = '#cc5555';
+        }
+    });
+
+    autoBtn.addEventListener('click', function() {
+        if (!gameActive || !infiniteLives) return;
+        autoMode = !autoMode;
+        messageArea.textContent = autoMode ? '🤖 自动寻路已开启' : '🤖 自动寻路已关闭';
+        messageArea.style.color = autoMode ? '#66aa88' : '#666';
+        if (autoMode && food) autoMove();
+    });
+
+    winBtn.addEventListener('click', function() {
+        if (!gameActive || !infiniteLives) return;
+        const head = {x:0, y:0};
+        const body = [];
+        for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+            if (x === head.x && y === head.y) continue;
+            body.push({x, y});
+        }
+        const maxBody = Math.min(body.length, 150);
+        snake = [head, ...body.slice(0, maxBody)];
+        score += 1000;
+        updateUI();
+        messageArea.textContent = '🚀 一键通关！胜利！';
+        messageArea.style.color = '#ccaa66';
+        gameOver(true);
+    });
+
+    // 初始显示主菜单
+    hideAllOverlays();
+    showOverlay('mainMenu');
+    loadHighScore();
+})();
+</script>
+</body>
+</html>
