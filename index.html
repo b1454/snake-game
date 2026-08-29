@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>梗王贪吃蛇 · V4.8</title>
+    <title>梗王贪吃蛇 · V5.1</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
         body {
@@ -173,6 +173,11 @@
             color: #7ab890;
         }
         .menu-btn.resume:hover { border-color: rgba(100,200,150,0.4); color: #8ac8a0; }
+        .menu-btn.feedback {
+            border-color: rgba(150,150,200,0.15);
+            color: #9a8ac8;
+        }
+        .menu-btn.feedback:hover { border-color: rgba(150,150,200,0.3); color: #b8a8d8; }
         .menu-hint {
             color: #4a4a6a;
             font-size: 0.7rem;
@@ -355,7 +360,6 @@
             .dpad { display: grid; }
             .controls { display: none; }
         }
-        /* 难度按钮 */
         .difficulty-btn {
             width: 200px;
             padding: 14px 0;
@@ -389,13 +393,111 @@
             margin-top: 12px;
             letter-spacing: 2px;
         }
+        /* 反馈弹窗 */
+        .feedback-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+        }
+        .feedback-overlay.active { display: flex; }
+        .feedback-box {
+            background: #1a1a30;
+            border: 1px solid #2a2a44;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            text-align: center;
+        }
+        .feedback-box h3 {
+            color: #f0e8d0;
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+            letter-spacing: 2px;
+        }
+        .feedback-box .sub {
+            color: #666688;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+        .feedback-box textarea {
+            width: 100%;
+            height: 120px;
+            background: #0a0a18;
+            border: 1px solid #2a2a44;
+            border-radius: 12px;
+            color: #c8c0b0;
+            font-size: 0.95rem;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .feedback-box textarea:focus {
+            border-color: #6a6a9a;
+        }
+        .feedback-box textarea::placeholder {
+            color: #4a4a6a;
+        }
+        .feedback-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .feedback-actions button {
+            padding: 10px 28px;
+            border-radius: 30px;
+            border: 1px solid #2a2a44;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            background: rgba(255,255,255,0.02);
+            color: #8888aa;
+        }
+        .feedback-actions button:hover {
+            background: rgba(255,255,255,0.06);
+            color: #c8c0b0;
+        }
+        .feedback-actions button.submit-btn {
+            background: #4a4a7a;
+            border-color: #5a5a8a;
+            color: #e0d8f0;
+        }
+        .feedback-actions button.submit-btn:hover {
+            background: #5a5a9a;
+            border-color: #6a6aaa;
+        }
+        .feedback-actions button.cancel-btn:hover {
+            border-color: #4a4a6a;
+        }
+        .feedback-status {
+            color: #7ab890;
+            font-size: 0.85rem;
+            margin-top: 12px;
+            min-height: 24px;
+        }
     </style>
 </head>
 <body>
 <div class="game-box">
     <div class="title-row">
         <div class="game-title"><span class="snake">🐍</span> 梗王贪吃蛇</div>
-        <span class="version-badge">V4.8</span>
+        <span class="version-badge">V5.1</span>
     </div>
     <div class="canvas-wrapper">
         <canvas id="gameCanvas" width="600" height="600"></canvas>
@@ -410,12 +512,13 @@
             <div class="menu-btn" id="menuGallery">▣ 图鉴</div>
             <div class="menu-btn" id="menuSettings">⚙ 设置</div>
             <div class="menu-btn dev" id="menuDev">👨‍💻 开发者名单</div>
+            <div class="menu-btn feedback" id="menuFeedback">📩 反馈</div>
             <div class="menu-btn danger" id="menuExit">✕ 退出游戏</div>
             <div class="menu-hint">⚙ 速度请在设置中调整</div>
             <div style="color:#3a3a5a;font-size:0.65rem;letter-spacing:8px;font-family:'Impact',monospace;border-top:1px solid #1a1a30;padding-top:12px;width:60%;text-align:center;">◆ SELECT ◆</div>
         </div>
 
-        <!-- 难度选择界面 -->
+        <!-- 难度选择 -->
         <div id="difficultyMenu" class="overlay">
             <div class="overlay-title">🎯 选择难度</div>
             <div class="overlay-sub">通关分数目标</div>
@@ -510,7 +613,7 @@
                 <div class="dev-entry"><span class="role">📦 版本管理</span><span class="name">冯高汶</span></div>
                 <div class="section" style="margin-top:12px;">📌 关于游戏</div>
                 <div style="color:#666688;font-size:0.85rem;padding:4px 0;">
-                    梗王贪吃蛇 V4.8<br>
+                    梗王贪吃蛇 V5.1<br>
                     由 冯高汶 设计并制作<br>
                     灵感来自回春丹、草东没有派对、核电站综合体
                 </div>
@@ -526,6 +629,21 @@
 
         <div id="cheatBtn">🖥️</div>
     </div>
+
+    <!-- 反馈弹窗（Outlook邮箱版） -->
+    <div class="feedback-overlay" id="feedbackOverlay">
+        <div class="feedback-box">
+            <h3>📩 反馈</h3>
+            <div class="sub">告诉我你的想法或遇到的问题</div>
+            <textarea id="feedbackInput" placeholder="写在这里...（如：游戏卡顿、建议新增功能、发现的Bug等）"></textarea>
+            <div class="feedback-actions">
+                <button class="submit-btn" id="feedbackSubmit">📤 发送反馈</button>
+                <button class="cancel-btn" id="feedbackCancel">取消</button>
+            </div>
+            <div class="feedback-status" id="feedbackStatus"></div>
+        </div>
+    </div>
+
     <div class="info-panel" id="infoPanel">
         <span>❤️ <span id="lives">3</span></span>
         <span>💥 <span id="score">0</span></span>
@@ -556,10 +674,9 @@
 </div>
 <script>
 (function() {
-    // ===== 版本检测模块 =====
-    const CURRENT_VERSION = '4.8';
+    // ===== 版本检测 =====
+    const CURRENT_VERSION = '5.1';
     const STORAGE_KEY = 'gagSnakeVersion';
-
     const lastVersion = localStorage.getItem(STORAGE_KEY);
     if (lastVersion && lastVersion !== CURRENT_VERSION) {
         if (confirm('🎮 检测到新版本！是否立即刷新页面？')) {
@@ -569,11 +686,13 @@
     } else if (!lastVersion) {
         localStorage.setItem(STORAGE_KEY, CURRENT_VERSION);
     }
-    // ===== 版本检测结束 =====
 
-    const GAME_VERSION = '4.8';
+    const GAME_VERSION = '5.1';
     const UPDATE_DATE = '2026年8月29日';
     console.log('梗王贪吃蛇 V' + GAME_VERSION + ' 更新日期: ' + UPDATE_DATE);
+
+    // ===== 用户邮箱配置 =====
+    const FEEDBACK_EMAIL = 'b14541454sb@outlook.com';
 
     // DOM
     const canvas = document.getElementById('gameCanvas');
@@ -607,11 +726,19 @@
     const menuGallery = document.getElementById('menuGallery');
     const menuSettings = document.getElementById('menuSettings');
     const menuDev = document.getElementById('menuDev');
+    const menuFeedback = document.getElementById('menuFeedback');
     const menuExit = document.getElementById('menuExit');
     const tutorialBack = document.getElementById('tutorialBack');
     const galleryBack = document.getElementById('galleryBack');
     const settingsBack = document.getElementById('settingsBack');
     const devBack = document.getElementById('devBack');
+
+    // 反馈相关
+    const feedbackOverlay = document.getElementById('feedbackOverlay');
+    const feedbackInput = document.getElementById('feedbackInput');
+    const feedbackSubmit = document.getElementById('feedbackSubmit');
+    const feedbackCancel = document.getElementById('feedbackCancel');
+    const feedbackStatus = document.getElementById('feedbackStatus');
 
     const speedRadios = document.querySelectorAll('input[name="speedSetting"]');
     const diffBtns = document.querySelectorAll('.difficulty-btn');
@@ -628,13 +755,9 @@
     let ghostModeActive, ghostModeTimer, doubleScoreActive, doubleScoreTimer;
     let infiniteLives = false, autoMode = false, autoInterval = null, pauseStartTime = 0;
     let soundEnabled = true;
-
-    // 删除黑洞相关变量（不再需要 isTeleporting 等）
-
-    // 新增：难度与通关目标
     let targetScore = 500;
-    let currentDifficulty = 'easy';
-    let gameWin = false; // 标记是否通关
+    let gameWin = false;
+    let isPausedToMenu = false;
 
     function playSound() {}
 
@@ -672,8 +795,6 @@
     const SPEED_UP = { emoji: '⚡', name: '加速', score: 5 };
     const SHIELD = { emoji: '🛡️', name: '护盾', score: 5 };
 
-    // 移除 BLACK_HOLE
-
     const EGG_EVENTS = [
         { text: '🎉 彩蛋！全屏下起食物雨！', effect: 'foodRain' },
         { text: '🃏 梗王降临！所有食物变成彩蛋！', effect: 'allEgg' },
@@ -683,7 +804,6 @@
         { text: '⚡ 雷霆控制棒！蛇身带电！', effect: 'lightningMode' },
     ];
 
-    // ---------- 核心函数 ----------
     function resetGame() {
         clearInterval(moveInterval);
         if (autoInterval) { clearInterval(autoInterval); autoInterval = null; }
@@ -727,7 +847,7 @@
     }
 
     function loadHighScore() {
-        const saved = localStorage.getItem('gagSnakeHighScoreV4_8');
+        const saved = localStorage.getItem('gagSnakeHighScoreV5_1');
         highScore = saved ? parseInt(saved,10) : 0;
         highScoreSpan.textContent = highScore;
         settingsHighScore.textContent = highScore;
@@ -735,7 +855,7 @@
     function saveHighScore() {
         if (score > highScore) {
             highScore = score;
-            localStorage.setItem('gagSnakeHighScoreV4_8', highScore);
+            localStorage.setItem('gagSnakeHighScoreV5_1', highScore);
             highScoreSpan.textContent = highScore;
             settingsHighScore.textContent = highScore;
         }
@@ -749,7 +869,6 @@
             moveSnake();
             checkFoodExpire();
             checkSpecialTimers();
-            // 检查是否达到通关分数
             if (score >= targetScore && gameActive) {
                 gameWin = true;
                 gameActive = false;
@@ -797,15 +916,11 @@
             messageArea.textContent = '⏸️ 已暂停';
         }
         updateCheatBtnVisibility();
-        if (!gamePaused) draw();
-        else draw();
+        if (!gamePaused) draw(); else draw();
     }
 
     function pauseAndGoToMainMenu() {
-        if (!gameActive) {
-            goToMainMenu();
-            return;
-        }
+        if (!gameActive) { goToMainMenu(); return; }
         if (!gamePaused) {
             pauseStartTime = Date.now();
             gamePaused = true;
@@ -821,10 +936,7 @@
     }
 
     function resumeGame() {
-        if (!gameActive) {
-            resumeBtn.style.display = 'none';
-            return;
-        }
+        if (!gameActive) { resumeBtn.style.display = 'none'; return; }
         isPausedToMenu = false;
         hideAllOverlays();
         messageArea.textContent = '⏸️ 已暂停';
@@ -844,9 +956,9 @@
         resumeBtn.style.display = 'none';
         hideAllOverlays();
         showOverlay('mainMenu');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0,0,canvas.width,canvas.height);
         ctx.fillStyle = '#1a1a2a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0,0,canvas.width,canvas.height);
         messageArea.textContent = '请从主菜单开始';
         messageArea.style.color = '#666';
         infoPanel.style.display = 'none';
@@ -888,7 +1000,6 @@
         else if (rand < 0.26) foodType = SPEED_UP;
         else if (rand < 0.36) foodType = SHIELD;
         else foodType = GAG_FOODS[Math.floor(Math.random() * GAG_FOODS.length)];
-
         if (Math.random() < 0.01 && gameActive) triggerRandomEvent();
     }
 
@@ -969,8 +1080,6 @@
         messageArea.style.color = '#cc8844';
         relocateSnakeToSpawn(); generateFood(); draw();
     }
-
-    // 移除 teleportSnake 相关函数
 
     function relocateSnakeToSpawn() {
         const originalLength = snake.length;
@@ -1145,18 +1254,14 @@
                 messageArea.style.color = '#88aa88';
                 updateUI(); break;
         }
-        // 检查是否达到通关分数（在 moveInterval 里也会检查）
     }
 
     function gameOver(won) {
         if (!gameActive) return;
         gameActive = false;
         clearInterval(moveInterval);
-        if (autoInterval) { clearInterval(autoInterval); autoInterval = null; }
-        // 如果不是通关胜利，才保存分数（通关已在 startMove 中保存）
-        if (!won) {
-            saveHighScore();
-        }
+        if (autoInterval) clearInterval(autoInterval);
+        if (!won) saveHighScore();
         const msg = lives <= 0 ? '💀 游戏结束！' : (won ? '🏆 通关成功！' : '游戏结束');
         messageArea.textContent = msg + ' 得分 ' + score;
         messageArea.style.color = lives <= 0 ? '#cc5555' : '#ccaa66';
@@ -1170,7 +1275,7 @@
     }
 
     function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0,0,canvas.width,canvas.height);
         ctx.strokeStyle = '#2a2a44';
         ctx.lineWidth = 0.5;
         for (let i=0;i<=COLS;i++) { ctx.beginPath(); ctx.moveTo(i*CELL_SIZE,0); ctx.lineTo(i*CELL_SIZE,canvas.height); ctx.stroke(); }
@@ -1214,7 +1319,7 @@
         }
         if (gamePaused && gameActive) {
             ctx.fillStyle = 'rgba(0,0,0,0.6)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0,0,canvas.width,canvas.height);
             ctx.font = 'bold 42px "Courier New", monospace';
             ctx.fillStyle = '#dddddd';
             ctx.textAlign = 'center';
@@ -1246,15 +1351,9 @@
         hideAllOverlays();
         document.getElementById(id).classList.add('active');
         if (id === 'galleryMenu') renderGallery();
-        if (id === 'settingsMenu') {
-            settingsHighScore.textContent = highScore;
-        }
+        if (id === 'settingsMenu') settingsHighScore.textContent = highScore;
         if (id === 'mainMenu') {
-            if (gameActive && isPausedToMenu) {
-                resumeBtn.style.display = 'block';
-            } else {
-                resumeBtn.style.display = 'none';
-            }
+            resumeBtn.style.display = (gameActive && isPausedToMenu) ? 'block' : 'none';
         }
     }
 
@@ -1269,7 +1368,6 @@
         const normal = allFoods.filter(f => !f.special && !['💣','⚡','🛡️'].includes(f.emoji));
         const special = allFoods.filter(f => f.special);
         const items = allFoods.filter(f => ['💣','⚡','🛡️'].includes(f.emoji));
-
         html += '<div class="section">📦 普通食物</div>';
         normal.forEach(f => {
             html += `<div class="item"><span class="emoji">${f.emoji}</span><span class="name">${f.name}</span><span class="desc">+${f.score}分</span></div>`;
@@ -1294,44 +1392,87 @@
         galleryContent.innerHTML = html;
     }
 
-    // ---------- 菜单事件 ----------
+    // ===== 反馈功能（Outlook邮箱版） =====
+    function openFeedback() {
+        feedbackOverlay.classList.add('active');
+        feedbackInput.value = '';
+        feedbackStatus.textContent = '';
+        feedbackInput.focus();
+    }
+
+    function closeFeedback() {
+        feedbackOverlay.classList.remove('active');
+        feedbackStatus.textContent = '';
+    }
+
+    function submitFeedback() {
+        const content = feedbackInput.value.trim();
+        if (!content) {
+            feedbackStatus.textContent = '⚠️ 请写点什么再提交吧';
+            feedbackStatus.style.color = '#cc8844';
+            return;
+        }
+        // 尝试复制到剪贴板（备用）
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText('🐍 梗王贪吃蛇反馈\n' + content + '\n\n——来自游戏内反馈')
+                .then(() => {
+                    feedbackStatus.textContent = '✅ 已复制！正在打开Outlook...';
+                    feedbackStatus.style.color = '#7ab890';
+                })
+                .catch(() => {});
+        }
+        // 打开Outlook邮箱
+        const subject = encodeURIComponent('梗王贪吃蛇反馈');
+        const body = encodeURIComponent('🐍 梗王贪吃蛇反馈\n\n' + content + '\n\n——来自游戏内反馈');
+        window.open('mailto:' + FEEDBACK_EMAIL + '?subject=' + subject + '&body=' + body);
+        feedbackStatus.textContent = '📤 正在打开Outlook...';
+        feedbackStatus.style.color = '#8888aa';
+        setTimeout(() => {
+            if (feedbackStatus.textContent === '📤 正在打开Outlook...') {
+                feedbackStatus.textContent = '📤 如果Outlook未打开，请手动复制反馈内容发送';
+                feedbackStatus.style.color = '#8888aa';
+            }
+        }, 3000);
+    }
+
+    menuFeedback.addEventListener('click', openFeedback);
+    feedbackSubmit.addEventListener('click', submitFeedback);
+    feedbackCancel.addEventListener('click', closeFeedback);
+    feedbackOverlay.addEventListener('click', function(e) {
+        if (e.target === this) closeFeedback();
+    });
+    feedbackInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeFeedback();
+        if (e.key === 'Enter' && e.ctrlKey) submitFeedback();
+    });
+
+    // ===== 菜单事件 =====
     menuNewGame.addEventListener('click', () => {
-        // 显示难度选择
         hideAllOverlays();
         showOverlay('difficultyMenu');
     });
 
-    // 难度选择
     diffBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const diff = this.dataset.diff;
-            currentDifficulty = diff;
             switch(diff) {
                 case 'easy': targetScore = 500; break;
                 case 'medium': targetScore = 1000; break;
                 case 'hard': targetScore = 1500; break;
-                default: targetScore = 500;
             }
-            // 开始游戏
             resetGame();
-            // 更新目标显示
             targetDisplay.textContent = '目标: ' + targetScore;
-            // 隐藏难度菜单
             hideAllOverlays();
         });
     });
 
     resumeBtn.addEventListener('click', resumeGame);
-
     menuTutorial.addEventListener('click', () => showOverlay('tutorialMenu'));
     tutorialBack.addEventListener('click', () => showOverlay('mainMenu'));
-
     menuGallery.addEventListener('click', () => showOverlay('galleryMenu'));
     galleryBack.addEventListener('click', () => showOverlay('mainMenu'));
-
     menuSettings.addEventListener('click', () => showOverlay('settingsMenu'));
     settingsBack.addEventListener('click', () => showOverlay('mainMenu'));
-
     menuDev.addEventListener('click', () => showOverlay('devMenu'));
     devBack.addEventListener('click', () => showOverlay('mainMenu'));
 
@@ -1341,30 +1482,18 @@
         this.classList.toggle('on');
     });
 
-    speedRadios.forEach(r => { r.addEventListener('change', function() {}); });
-
     menuExit.addEventListener('click', () => {
         if (confirm('确定要退出吗？')) {
             document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#666;font-family:monospace;font-size:1.2rem;">👋 游戏已关闭</div>';
         }
     });
 
-    // 返回主菜单（游戏内按钮）
-    backToMenuBtn.addEventListener('click', () => {
-        goToMainMenu();
-    });
-
-    // 重新开始按钮 -> 返回主菜单（不直接开始）
+    backToMenuBtn.addEventListener('click', goToMainMenu);
     restartBtn.addEventListener('click', () => {
-        if (gameActive) {
-            // 如果游戏正在进行，先暂停再返回主菜单
-            pauseAndGoToMainMenu();
-        } else {
-            goToMainMenu();
-        }
+        if (gameActive) pauseAndGoToMainMenu();
+        else goToMainMenu();
     });
 
-    // 键盘事件
     window.addEventListener('keydown', (e) => {
         const key = e.key.toLowerCase();
         if (key === 'escape') {
@@ -1383,11 +1512,7 @@
                 hideAllOverlays();
                 resumeBtn.style.display = 'none';
             }
-            if (!gamePaused) {
-                infoPanel.style.display = 'flex';
-            } else {
-                infoPanel.style.display = 'none';
-            }
+            infoPanel.style.display = !gamePaused ? 'flex' : 'none';
             return;
         }
         if (gamePaused) return;
@@ -1408,11 +1533,7 @@
                         hideAllOverlays();
                         resumeBtn.style.display = 'none';
                     }
-                    if (!gamePaused) {
-                        infoPanel.style.display = 'flex';
-                    } else {
-                        infoPanel.style.display = 'none';
-                    }
+                    infoPanel.style.display = !gamePaused ? 'flex' : 'none';
                 }
                 return;
             }
@@ -1426,7 +1547,6 @@
         });
     });
 
-    // 作弊按钮（暗号）
     cheatBtn.addEventListener('click', function() {
         if (!gamePaused || !gameActive) {
             messageArea.textContent = '⏸️ 请先暂停游戏再输入暗号！';
@@ -1469,7 +1589,6 @@
         updateUI();
         messageArea.textContent = '🚀 一键通关！胜利！';
         messageArea.style.color = '#ccaa66';
-        // 直接通关
         gameWin = true;
         gameActive = false;
         clearInterval(moveInterval);
@@ -1484,7 +1603,6 @@
         infoPanel.style.display = 'none';
     });
 
-    // 初始显示主菜单
     hideAllOverlays();
     showOverlay('mainMenu');
     loadHighScore();
