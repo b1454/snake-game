@@ -355,17 +355,52 @@
             .dpad { display: grid; }
             .controls { display: none; }
         }
+        /* 难度按钮 */
+        .difficulty-btn {
+            width: 200px;
+            padding: 14px 0;
+            margin: 8px 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #c8c0b0;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+        }
+        .difficulty-btn:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(200,180,120,0.2);
+            color: #f0e8d0;
+        }
+        .difficulty-btn:active { transform: scale(0.97); }
+        .difficulty-btn.easy { border-color: rgba(100,200,150,0.2); color: #7ab890; }
+        .difficulty-btn.easy:hover { border-color: rgba(100,200,150,0.4); color: #8ac8a0; }
+        .difficulty-btn.medium { border-color: rgba(200,180,100,0.2); color: #d4b85a; }
+        .difficulty-btn.medium:hover { border-color: rgba(200,180,100,0.4); color: #e8cc6a; }
+        .difficulty-btn.hard { border-color: rgba(200,80,80,0.2); color: #cc6a6a; }
+        .difficulty-btn.hard:hover { border-color: rgba(200,80,80,0.4); color: #e88080; }
+        .difficulty-hint {
+            color: #4a4a6a;
+            font-size: 0.8rem;
+            margin-top: 12px;
+            letter-spacing: 2px;
+        }
     </style>
 </head>
 <body>
 <div class="game-box">
     <div class="title-row">
         <div class="game-title"><span class="snake">🐍</span> 梗王贪吃蛇</div>
-        <span class="version-badge">V4.7</span>
+        <span class="version-badge">V4.8</span>
     </div>
     <div class="canvas-wrapper">
         <canvas id="gameCanvas" width="600" height="600"></canvas>
 
+        <!-- 主菜单 -->
         <div id="mainMenu" class="overlay active">
             <div class="overlay-title">🐍 梗王贪吃蛇</div>
             <div class="overlay-sub">PICK SOUND</div>
@@ -380,6 +415,17 @@
             <div style="color:#3a3a5a;font-size:0.65rem;letter-spacing:8px;font-family:'Impact',monospace;border-top:1px solid #1a1a30;padding-top:12px;width:60%;text-align:center;">◆ SELECT ◆</div>
         </div>
 
+        <!-- 难度选择界面 -->
+        <div id="difficultyMenu" class="overlay">
+            <div class="overlay-title">🎯 选择难度</div>
+            <div class="overlay-sub">通关分数目标</div>
+            <button class="difficulty-btn easy" data-diff="easy">🌱 简单 (500分)</button>
+            <button class="difficulty-btn medium" data-diff="medium">🌿 中等 (1000分)</button>
+            <button class="difficulty-btn hard" data-diff="hard">🔥 困难 (1500分)</button>
+            <div class="difficulty-hint">选择后游戏立即开始</div>
+        </div>
+
+        <!-- 教程 -->
         <div id="tutorialMenu" class="overlay">
             <div class="overlay-title">📖 教程</div>
             <div class="overlay-sub">HOW TO PLAY</div>
@@ -396,19 +442,19 @@
                 <div>💣 炸弹：扣1条命</div>
                 <div>⚡ 加速：蛇移动速度提升</div>
                 <div>🛡️ 护盾：抵挡一次撞墙/自撞</div>
-                <div>🕳️ 黑洞：传送蛇头（缓慢移动）</div>
                 <div class="section" style="margin-top:12px;">🎯 特殊食物</div>
                 <div>☢️ 核燃料棒：加速但扣1命</div>
                 <div>⚛️ 控制棒：方向随机改变</div>
                 <div>🔥 开盖有奖：+100分，全屏闪烁</div>
                 <div>⚡ 雷霆控制棒：穿墙加速5秒</div>
-                <div class="section" style="margin-top:12px;">🕳️ 黑洞传送</div>
-                <div>吃下黑洞后，蛇头会逐步移动到安全位置</div>
-                <div>若途中撞墙或撞自己，传送中断</div>
+                <div class="section" style="margin-top:12px;">🏆 通关条件</div>
+                <div>选择难度后，达到对应分数即通关胜利！</div>
+                <div>简单：500分 · 中等：1000分 · 困难：1500分</div>
             </div>
             <div class="menu-btn back" id="tutorialBack">← 返回</div>
         </div>
 
+        <!-- 图鉴 -->
         <div id="galleryMenu" class="overlay">
             <div class="overlay-title">▣ 图鉴</div>
             <div class="overlay-sub">FOOD GALLERY</div>
@@ -416,6 +462,7 @@
             <div class="menu-btn back" id="galleryBack">← 返回</div>
         </div>
 
+        <!-- 设置 -->
         <div id="settingsMenu" class="overlay">
             <div class="overlay-title">⚙ 设置</div>
             <div class="overlay-sub">SETTINGS</div>
@@ -438,7 +485,7 @@
                 </div>
                 <div class="settings-row">
                     <span>📅 更新日期</span>
-                    <span class="value">2026年8月28日</span>
+                    <span class="value">2026年8月29日</span>
                 </div>
                 <div style="color:#4a4a6a;font-size:0.8rem;margin-top:12px;text-align:center;border-top:1px solid #1a1a30;padding-top:12px;">
                     速度调整后，新游戏将立即生效
@@ -447,6 +494,7 @@
             <div class="menu-btn back" id="settingsBack">← 返回</div>
         </div>
 
+        <!-- 开发者 -->
         <div id="devMenu" class="overlay">
             <div class="overlay-title">👨‍💻 开发者名单</div>
             <div class="overlay-sub">CREDITS</div>
@@ -462,7 +510,7 @@
                 <div class="dev-entry"><span class="role">📦 版本管理</span><span class="name">冯高汶</span></div>
                 <div class="section" style="margin-top:12px;">📌 关于游戏</div>
                 <div style="color:#666688;font-size:0.85rem;padding:4px 0;">
-                    梗王贪吃蛇 V4.7<br>
+                    梗王贪吃蛇 V4.8<br>
                     由 冯高汶 设计并制作<br>
                     灵感来自回春丹、草东没有派对、核电站综合体
                 </div>
@@ -483,6 +531,7 @@
         <span>💥 <span id="score">0</span></span>
         <span>🔥 <span id="combo">0</span></span>
         <span>🏆 <span id="highScore">0</span></span>
+        <span>🎯 <span id="targetDisplay">目标: 500</span></span>
     </div>
     <div class="message" id="messageArea"></div>
     <div class="controls" id="desktopControls">
@@ -503,12 +552,12 @@
         <button id="winBtn">🚀 一键通关</button>
         <button id="backToMenuBtn">🏠 主菜单</button>
     </div>
-    <button class="btn" id="restartBtn">🔄 重新开始</button>
+    <button class="btn" id="restartBtn">🔄 返回主菜单</button>
 </div>
 <script>
 (function() {
     // ===== 版本检测模块 =====
-    const CURRENT_VERSION = '4.7';
+    const CURRENT_VERSION = '4.8';
     const STORAGE_KEY = 'gagSnakeVersion';
 
     const lastVersion = localStorage.getItem(STORAGE_KEY);
@@ -522,8 +571,8 @@
     }
     // ===== 版本检测结束 =====
 
-    const GAME_VERSION = '4.7';
-    const UPDATE_DATE = '2026年8月28日';
+    const GAME_VERSION = '4.8';
+    const UPDATE_DATE = '2026年8月29日';
     console.log('梗王贪吃蛇 V' + GAME_VERSION + ' 更新日期: ' + UPDATE_DATE);
 
     // DOM
@@ -533,6 +582,7 @@
     const scoreSpan = document.getElementById('score');
     const comboSpan = document.getElementById('combo');
     const highScoreSpan = document.getElementById('highScore');
+    const targetDisplay = document.getElementById('targetDisplay');
     const messageArea = document.getElementById('messageArea');
     const restartBtn = document.getElementById('restartBtn');
     const cheatBtn = document.getElementById('cheatBtn');
@@ -543,6 +593,7 @@
     const infoPanel = document.getElementById('infoPanel');
 
     const mainMenu = document.getElementById('mainMenu');
+    const difficultyMenu = document.getElementById('difficultyMenu');
     const tutorialMenu = document.getElementById('tutorialMenu');
     const galleryMenu = document.getElementById('galleryMenu');
     const settingsMenu = document.getElementById('settingsMenu');
@@ -563,6 +614,7 @@
     const devBack = document.getElementById('devBack');
 
     const speedRadios = document.querySelectorAll('input[name="speedSetting"]');
+    const diffBtns = document.querySelectorAll('.difficulty-btn');
 
     const COLS = 20, ROWS = 20, CELL_SIZE = canvas.width / COLS;
     const INIT_LIVES = 3, MAX_COMBO = 10;
@@ -577,10 +629,12 @@
     let infiniteLives = false, autoMode = false, autoInterval = null, pauseStartTime = 0;
     let soundEnabled = true;
 
-    let isTeleporting = false;
-    let teleportTargetX = 0, teleportTargetY = 0;
-    let teleportStartX = 0, teleportStartY = 0;
-    let isPausedToMenu = false;
+    // 删除黑洞相关变量（不再需要 isTeleporting 等）
+
+    // 新增：难度与通关目标
+    let targetScore = 500;
+    let currentDifficulty = 'easy';
+    let gameWin = false; // 标记是否通关
 
     function playSound() {}
 
@@ -617,7 +671,8 @@
     const BOMB = { emoji: '💣', name: '炸弹', score: -1 };
     const SPEED_UP = { emoji: '⚡', name: '加速', score: 5 };
     const SHIELD = { emoji: '🛡️', name: '护盾', score: 5 };
-    const BLACK_HOLE = { emoji: '🕳️', name: '黑洞', score: 0 };
+
+    // 移除 BLACK_HOLE
 
     const EGG_EVENTS = [
         { text: '🎉 彩蛋！全屏下起食物雨！', effect: 'foodRain' },
@@ -628,11 +683,11 @@
         { text: '⚡ 雷霆控制棒！蛇身带电！', effect: 'lightningMode' },
     ];
 
+    // ---------- 核心函数 ----------
     function resetGame() {
         clearInterval(moveInterval);
         if (autoInterval) { clearInterval(autoInterval); autoInterval = null; }
-        isTeleporting = false;
-        isPausedToMenu = false;
+        gameWin = false;
         snake = [{x:SPAWN_X,y:SPAWN_Y},{x:SPAWN_X-1,y:SPAWN_Y},{x:SPAWN_X-2,y:SPAWN_Y}];
         direction = 'right';
         nextDirection = 'right';
@@ -672,7 +727,7 @@
     }
 
     function loadHighScore() {
-        const saved = localStorage.getItem('gagSnakeHighScoreV4_7');
+        const saved = localStorage.getItem('gagSnakeHighScoreV4_8');
         highScore = saved ? parseInt(saved,10) : 0;
         highScoreSpan.textContent = highScore;
         settingsHighScore.textContent = highScore;
@@ -680,7 +735,7 @@
     function saveHighScore() {
         if (score > highScore) {
             highScore = score;
-            localStorage.setItem('gagSnakeHighScoreV4_7', highScore);
+            localStorage.setItem('gagSnakeHighScoreV4_8', highScore);
             highScoreSpan.textContent = highScore;
             settingsHighScore.textContent = highScore;
         }
@@ -694,6 +749,24 @@
             moveSnake();
             checkFoodExpire();
             checkSpecialTimers();
+            // 检查是否达到通关分数
+            if (score >= targetScore && gameActive) {
+                gameWin = true;
+                gameActive = false;
+                clearInterval(moveInterval);
+                if (autoInterval) clearInterval(autoInterval);
+                saveHighScore();
+                messageArea.textContent = '🎉 通关成功！你赢了！得分: ' + score;
+                messageArea.style.color = '#f1c40f';
+                backToMenuBtn.style.display = 'inline-block';
+                draw();
+                updateCheatBtnVisibility();
+                autoBtn.style.display = 'none';
+                winBtn.style.display = 'none';
+                resumeBtn.style.display = 'none';
+                infoPanel.style.display = 'none';
+                return;
+            }
             draw();
         }, gameSpeed);
     }
@@ -703,7 +776,7 @@
         scoreSpan.textContent = score;
         comboSpan.textContent = combo;
         highScoreSpan.textContent = highScore;
-        settingsHighScore.textContent = highScore;
+        targetDisplay.textContent = '目标: ' + targetScore;
     }
 
     function updateCheatBtnVisibility() {
@@ -764,8 +837,6 @@
         gameActive = false;
         clearInterval(moveInterval);
         if (autoInterval) clearInterval(autoInterval);
-        isTeleporting = false;
-        isPausedToMenu = false;
         autoBtn.style.display = 'none';
         winBtn.style.display = 'none';
         backToMenuBtn.style.display = 'none';
@@ -816,7 +887,6 @@
         else if (rand < 0.16) foodType = BOMB;
         else if (rand < 0.26) foodType = SPEED_UP;
         else if (rand < 0.36) foodType = SHIELD;
-        else if (rand < 0.44) foodType = BLACK_HOLE;
         else foodType = GAG_FOODS[Math.floor(Math.random() * GAG_FOODS.length)];
 
         if (Math.random() < 0.01 && gameActive) triggerRandomEvent();
@@ -900,64 +970,7 @@
         relocateSnakeToSpawn(); generateFood(); draw();
     }
 
-    function teleportSnake() {
-        if (isTeleporting) return;
-        for (let i = 0; i < 300; i++) {
-            const x = 2 + Math.floor(Math.random() * (COLS - 4));
-            const y = 2 + Math.floor(Math.random() * (ROWS - 4));
-            if (!snake.some(seg => seg.x === x && seg.y === y)) {
-                teleportTargetX = x;
-                teleportTargetY = y;
-                teleportStartX = snake[0].x;
-                teleportStartY = snake[0].y;
-                isTeleporting = true;
-                messageArea.textContent = '🕳️ 传送中...';
-                messageArea.style.color = '#9966cc';
-                return;
-            }
-        }
-        snake[0] = {x: SPAWN_X, y: SPAWN_Y};
-        messageArea.textContent = '🕳️ 黑洞传送！';
-        messageArea.style.color = '#9966cc';
-    }
-
-    function stepTeleport() {
-        if (!isTeleporting) return;
-        const head = snake[0];
-        const dx = teleportTargetX - head.x;
-        const dy = teleportTargetY - head.y;
-        if (dx === 0 && dy === 0) {
-            isTeleporting = false;
-            messageArea.textContent = '✅ 传送完成！';
-            messageArea.style.color = '#66aa88';
-            return;
-        }
-        let moveX = 0, moveY = 0;
-        if (Math.abs(dx) >= Math.abs(dy)) {
-            if (dx > 0) moveX = 1;
-            else if (dx < 0) moveX = -1;
-        } else {
-            if (dy > 0) moveY = 1;
-            else if (dy < 0) moveY = -1;
-        }
-        const newHead = {x: head.x + moveX, y: head.y + moveY};
-        if (newHead.x < 0 || newHead.x >= COLS || newHead.y < 0 || newHead.y >= ROWS) {
-            isTeleporting = false;
-            snake[0] = {x: teleportStartX, y: teleportStartY};
-            messageArea.textContent = '💥 传送中断！撞墙';
-            messageArea.style.color = '#cc5555';
-            return;
-        }
-        if (snake.some(seg => seg.x === newHead.x && seg.y === newHead.y && seg !== head)) {
-            isTeleporting = false;
-            snake[0] = {x: teleportStartX, y: teleportStartY};
-            messageArea.textContent = '💥 传送中断！撞到自己';
-            messageArea.style.color = '#cc5555';
-            return;
-        }
-        const newSnake = [newHead, ...snake.slice(0, -1)];
-        snake = newSnake;
-    }
+    // 移除 teleportSnake 相关函数
 
     function relocateSnakeToSpawn() {
         const originalLength = snake.length;
@@ -1024,10 +1037,6 @@
 
     function moveSnake() {
         if (!gameActive || gamePaused) return;
-        if (isTeleporting) {
-            stepTeleport();
-            return;
-        }
         direction = nextDirection;
         const head = {...snake[0]};
         switch(direction) {
@@ -1101,8 +1110,7 @@
             messageArea.style.color = '#ffaa00';
             document.body.style.backgroundColor = '#ffaa00';
             setTimeout(() => document.body.style.backgroundColor = '#0a0a12', 300);
-            updateUI();
-            return;
+            updateUI(); return;
         }
         if (foodType.special === 'thunder') {
             ghostModeActive = true; ghostModeTimer = 5000;
@@ -1129,10 +1137,6 @@
                 score += 5;
                 messageArea.textContent = '🛡️ 获得护盾！'; messageArea.style.color = '#66cccc';
                 updateUI(); break;
-            case '🕳️':
-                teleportSnake();
-                updateUI();
-                break;
             default:
                 const multiplier = getComboMultiplier();
                 const points = Math.round(foodType.score * multiplier);
@@ -1141,6 +1145,7 @@
                 messageArea.style.color = '#88aa88';
                 updateUI(); break;
         }
+        // 检查是否达到通关分数（在 moveInterval 里也会检查）
     }
 
     function gameOver(won) {
@@ -1148,10 +1153,11 @@
         gameActive = false;
         clearInterval(moveInterval);
         if (autoInterval) { clearInterval(autoInterval); autoInterval = null; }
-        isTeleporting = false;
-        isPausedToMenu = false;
-        saveHighScore();
-        const msg = lives <= 0 ? '💀 游戏结束！' : '🏆 你赢了！';
+        // 如果不是通关胜利，才保存分数（通关已在 startMove 中保存）
+        if (!won) {
+            saveHighScore();
+        }
+        const msg = lives <= 0 ? '💀 游戏结束！' : (won ? '🏆 通关成功！' : '游戏结束');
         messageArea.textContent = msg + ' 得分 ' + score;
         messageArea.style.color = lives <= 0 ? '#cc5555' : '#ccaa66';
         backToMenuBtn.style.display = 'inline-block';
@@ -1206,16 +1212,6 @@
             ctx.strokeStyle = 'rgba(100,200,200,0.4)'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.arc(head.x*CELL_SIZE+CELL_SIZE/2, head.y*CELL_SIZE+CELL_SIZE/2, CELL_SIZE*0.9, 0, 2*Math.PI); ctx.stroke();
         }
-        if (isTeleporting) {
-            const head = snake[0];
-            ctx.strokeStyle = 'rgba(200,150,255,0.5)';
-            ctx.lineWidth = 3;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.rect(head.x*CELL_SIZE, head.y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
         if (gamePaused && gameActive) {
             ctx.fillStyle = 'rgba(0,0,0,0.6)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1235,7 +1231,7 @@
             ctx.fillStyle = '#ccaa66';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(lives <= 0 ? '💀 游戏结束' : '🏆 胜利', canvas.width/2, canvas.height/2 - 20);
+            ctx.fillText(lives <= 0 ? '💀 游戏结束' : (gameWin ? '🏆 通关胜利' : '游戏结束'), canvas.width/2, canvas.height/2 - 20);
             ctx.font = '20px "Courier New", monospace';
             ctx.fillStyle = '#8888aa';
             ctx.fillText('得分: ' + score + '  最高: ' + highScore, canvas.width/2, canvas.height/2 + 35);
@@ -1268,12 +1264,11 @@
             { emoji: '💣', name: '炸弹', score: -1 },
             { emoji: '⚡', name: '加速', score: 5 },
             { emoji: '🛡️', name: '护盾', score: 5 },
-            { emoji: '🕳️', name: '黑洞', score: 0 },
         ];
         let html = '';
-        const normal = allFoods.filter(f => !f.special && !['💣','⚡','🛡️','🕳️'].includes(f.emoji));
+        const normal = allFoods.filter(f => !f.special && !['💣','⚡','🛡️'].includes(f.emoji));
         const special = allFoods.filter(f => f.special);
-        const items = allFoods.filter(f => ['💣','⚡','🛡️','🕳️'].includes(f.emoji));
+        const items = allFoods.filter(f => ['💣','⚡','🛡️'].includes(f.emoji));
 
         html += '<div class="section">📦 普通食物</div>';
         normal.forEach(f => {
@@ -1293,15 +1288,37 @@
         items.forEach(f => {
             const desc = f.emoji === '💣' ? '扣1命' :
                          f.emoji === '⚡' ? '加速' :
-                         f.emoji === '🛡️' ? '护盾' : '传送';
+                         f.emoji === '🛡️' ? '护盾' : '';
             html += `<div class="item"><span class="emoji">${f.emoji}</span><span class="name">${f.name}</span><span class="desc">${desc}</span></div>`;
         });
         galleryContent.innerHTML = html;
     }
 
+    // ---------- 菜单事件 ----------
     menuNewGame.addEventListener('click', () => {
-        resetGame();
+        // 显示难度选择
         hideAllOverlays();
+        showOverlay('difficultyMenu');
+    });
+
+    // 难度选择
+    diffBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const diff = this.dataset.diff;
+            currentDifficulty = diff;
+            switch(diff) {
+                case 'easy': targetScore = 500; break;
+                case 'medium': targetScore = 1000; break;
+                case 'hard': targetScore = 1500; break;
+                default: targetScore = 500;
+            }
+            // 开始游戏
+            resetGame();
+            // 更新目标显示
+            targetDisplay.textContent = '目标: ' + targetScore;
+            // 隐藏难度菜单
+            hideAllOverlays();
+        });
     });
 
     resumeBtn.addEventListener('click', resumeGame);
@@ -1332,11 +1349,22 @@
         }
     });
 
+    // 返回主菜单（游戏内按钮）
     backToMenuBtn.addEventListener('click', () => {
-        if (!gameActive) goToMainMenu();
-        else pauseAndGoToMainMenu();
+        goToMainMenu();
     });
 
+    // 重新开始按钮 -> 返回主菜单（不直接开始）
+    restartBtn.addEventListener('click', () => {
+        if (gameActive) {
+            // 如果游戏正在进行，先暂停再返回主菜单
+            pauseAndGoToMainMenu();
+        } else {
+            goToMainMenu();
+        }
+    });
+
+    // 键盘事件
     window.addEventListener('keydown', (e) => {
         const key = e.key.toLowerCase();
         if (key === 'escape') {
@@ -1363,7 +1391,6 @@
             return;
         }
         if (gamePaused) return;
-        if (isTeleporting) { e.preventDefault(); return; }
         if (key === 'arrowup' || key === 'w') { if (direction !== 'down') nextDirection = 'up'; }
         else if (key === 'arrowdown' || key === 's') { if (direction !== 'up') nextDirection = 'down'; }
         else if (key === 'arrowleft' || key === 'a') { if (direction !== 'right') nextDirection = 'left'; }
@@ -1390,7 +1417,6 @@
                 return;
             }
             if (!gameActive || gamePaused) return;
-            if (isTeleporting) return;
             switch(dir) {
                 case 'up': if (direction !== 'down') nextDirection = 'up'; break;
                 case 'down': if (direction !== 'up') nextDirection = 'down'; break;
@@ -1400,11 +1426,7 @@
         });
     });
 
-    restartBtn.addEventListener('click', () => {
-        resetGame();
-        hideAllOverlays();
-    });
-
+    // 作弊按钮（暗号）
     cheatBtn.addEventListener('click', function() {
         if (!gamePaused || !gameActive) {
             messageArea.textContent = '⏸️ 请先暂停游戏再输入暗号！';
@@ -1447,9 +1469,22 @@
         updateUI();
         messageArea.textContent = '🚀 一键通关！胜利！';
         messageArea.style.color = '#ccaa66';
-        gameOver(true);
+        // 直接通关
+        gameWin = true;
+        gameActive = false;
+        clearInterval(moveInterval);
+        if (autoInterval) clearInterval(autoInterval);
+        saveHighScore();
+        backToMenuBtn.style.display = 'inline-block';
+        draw();
+        updateCheatBtnVisibility();
+        autoBtn.style.display = 'none';
+        winBtn.style.display = 'none';
+        resumeBtn.style.display = 'none';
+        infoPanel.style.display = 'none';
     });
 
+    // 初始显示主菜单
     hideAllOverlays();
     showOverlay('mainMenu');
     loadHighScore();
