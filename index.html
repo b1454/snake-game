@@ -64,6 +64,7 @@
             box-shadow: 0 0 0 2px #2a2a44, 0 20px 40px rgba(0,0,0,0.6);
             width: 100%;
             height: auto;
+            touch-action: none;
         }
         .overlay {
             position: absolute;
@@ -77,10 +78,11 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 30;
+            z-index: 100;
             padding: 20px;
             border: 1px solid rgba(255,255,255,0.02);
             overflow-y: auto;
+            pointer-events: auto;
         }
         .overlay.active { display: flex; }
         .overlay-title {
@@ -693,6 +695,15 @@
 
     // ===== 用户邮箱配置 =====
     const FEEDBACK_EMAIL = 'b14541454sb@outlook.com';
+
+    // ===== 通用触摸/点击事件绑定 =====
+    function addTapListener(el, fn) {
+        if (!el) return;
+        el.addEventListener('pointerdown', function(e) {
+            e.preventDefault();
+            fn.call(this, e);
+        });
+    }
 
     // DOM
     const canvas = document.getElementById('gameCanvas');
@@ -1412,7 +1423,6 @@
             feedbackStatus.style.color = '#cc8844';
             return;
         }
-        // 尝试复制到剪贴板（备用）
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText('🐍 梗王贪吃蛇反馈\n' + content + '\n\n——来自游戏内反馈')
                 .then(() => {
@@ -1421,7 +1431,6 @@
                 })
                 .catch(() => {});
         }
-        // 打开Outlook邮箱
         const subject = encodeURIComponent('梗王贪吃蛇反馈');
         const body = encodeURIComponent('🐍 梗王贪吃蛇反馈\n\n' + content + '\n\n——来自游戏内反馈');
         window.open('mailto:' + FEEDBACK_EMAIL + '?subject=' + subject + '&body=' + body);
@@ -1435,9 +1444,9 @@
         }, 3000);
     }
 
-    menuFeedback.addEventListener('click', openFeedback);
-    feedbackSubmit.addEventListener('click', submitFeedback);
-    feedbackCancel.addEventListener('click', closeFeedback);
+    addTapListener(menuFeedback, openFeedback);
+    addTapListener(feedbackSubmit, submitFeedback);
+    addTapListener(feedbackCancel, closeFeedback);
     feedbackOverlay.addEventListener('click', function(e) {
         if (e.target === this) closeFeedback();
     });
@@ -1447,13 +1456,13 @@
     });
 
     // ===== 菜单事件 =====
-    menuNewGame.addEventListener('click', () => {
+    addTapListener(menuNewGame, function() {
         hideAllOverlays();
         showOverlay('difficultyMenu');
     });
 
     diffBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
+        addTapListener(btn, function() {
             const diff = this.dataset.diff;
             switch(diff) {
                 case 'easy': targetScore = 500; break;
@@ -1466,35 +1475,35 @@
         });
     });
 
-    resumeBtn.addEventListener('click', resumeGame);
-    menuTutorial.addEventListener('click', () => showOverlay('tutorialMenu'));
-    tutorialBack.addEventListener('click', () => showOverlay('mainMenu'));
-    menuGallery.addEventListener('click', () => showOverlay('galleryMenu'));
-    galleryBack.addEventListener('click', () => showOverlay('mainMenu'));
-    menuSettings.addEventListener('click', () => showOverlay('settingsMenu'));
-    settingsBack.addEventListener('click', () => showOverlay('mainMenu'));
-    menuDev.addEventListener('click', () => showOverlay('devMenu'));
-    devBack.addEventListener('click', () => showOverlay('mainMenu'));
+    addTapListener(resumeBtn, resumeGame);
+    addTapListener(menuTutorial, function() { showOverlay('tutorialMenu'); });
+    addTapListener(tutorialBack, function() { showOverlay('mainMenu'); });
+    addTapListener(menuGallery, function() { showOverlay('galleryMenu'); });
+    addTapListener(galleryBack, function() { showOverlay('mainMenu'); });
+    addTapListener(menuSettings, function() { showOverlay('settingsMenu'); });
+    addTapListener(settingsBack, function() { showOverlay('mainMenu'); });
+    addTapListener(menuDev, function() { showOverlay('devMenu'); });
+    addTapListener(devBack, function() { showOverlay('mainMenu'); });
 
-    soundToggle.addEventListener('click', function() {
+    addTapListener(soundToggle, function() {
         soundEnabled = !soundEnabled;
         this.textContent = soundEnabled ? '开启' : '关闭';
         this.classList.toggle('on');
     });
 
-    menuExit.addEventListener('click', () => {
+    addTapListener(menuExit, function() {
         if (confirm('确定要退出吗？')) {
             document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#666;font-family:monospace;font-size:1.2rem;">👋 游戏已关闭</div>';
         }
     });
 
-    backToMenuBtn.addEventListener('click', goToMainMenu);
-    restartBtn.addEventListener('click', () => {
+    addTapListener(backToMenuBtn, goToMainMenu);
+    addTapListener(restartBtn, function() {
         if (gameActive) pauseAndGoToMainMenu();
         else goToMainMenu();
     });
 
-    window.addEventListener('keydown', (e) => {
+    window.addEventListener('keydown', function(e) {
         const key = e.key.toLowerCase();
         if (key === 'escape') {
             if (mainMenu.classList.contains('active') && isPausedToMenu && gameActive) {
@@ -1524,7 +1533,7 @@
     });
 
     document.querySelectorAll('[data-dir]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        addTapListener(btn, function() {
             const dir = btn.dataset.dir;
             if (dir === 'pause') {
                 if (gameActive) {
@@ -1547,7 +1556,7 @@
         });
     });
 
-    cheatBtn.addEventListener('click', function() {
+    addTapListener(cheatBtn, function() {
         if (!gamePaused || !gameActive) {
             messageArea.textContent = '⏸️ 请先暂停游戏再输入暗号！';
             messageArea.style.color = '#cc8844';
@@ -1567,7 +1576,7 @@
         }
     });
 
-    autoBtn.addEventListener('click', function() {
+    addTapListener(autoBtn, function() {
         if (!gameActive || !infiniteLives) return;
         autoMode = !autoMode;
         messageArea.textContent = autoMode ? '🤖 自动寻路已开启' : '🤖 自动寻路已关闭';
@@ -1575,7 +1584,7 @@
         if (autoMode && food) autoMove();
     });
 
-    winBtn.addEventListener('click', function() {
+    addTapListener(winBtn, function() {
         if (!gameActive || !infiniteLives) return;
         const head = {x:0, y:0};
         const body = [];
